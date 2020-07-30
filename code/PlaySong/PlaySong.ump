@@ -4,15 +4,17 @@ use music.*;
 class PlaySong{
 	// This will be used to display the time remaining and track that time
   // In a real system, this would be in minutes, but it will be seconds in this simulation
-  Float currentMinute = 0.0;
+  Integer currentMinute = 0;
+  Integer currentSecond = 0;
   
-  Float numMins = 0.0;
+  Integer numMins = 0;
+  Integer numSecs = 0;
   
   Integer secondsCounter = 0;
   
   String songTitle = "";
   String albumTitle = "";
-  String artistTitle = "";
+  String artistName = "";
   String playListTitle = "";
   
   
@@ -26,8 +28,8 @@ class PlaySong{
 		}
 		
 		play{
-		entry/{display("Now playing : " + songTitle + " by " + artistTitle);}
-		entry/{startTimer(numMins);}
+		entry/{display("Now playing : " + songTitle + " by " + artistName);}
+		entry/{startTimer(numMins,numSecs);}
 		
 		forwardPlay -> forward;
 		fastForward -> fastforward;
@@ -65,21 +67,21 @@ class PlaySong{
 	
 	queued timingSm {
     idle {
-      startTimer(Float numMins) / {currentMinute == 0.00 } -> countingDown;
+      startTimer(Integer numMins, Integer numSecs) / {currentMinute = 0; currentSecond = 0;} -> countingDown;
     }
     countingDown {
-      startTimer(Float numMins) / {currentMinute == 0.00 } -> countingDown;
-      after(1.0) [minutesRemaining < numMins && ! paused]  / {
+      startTimer(Integer numMins, Integer numSecs) / {currentMinute = 0; currentSecond = 0;} -> countingDown;
+      after(1.0) [currentMinute < numMins && ! paused]  / {
         displayTime();
-        if(secondsCounter == 5){
-        	currentMinute = currentMinute + 0.50;
-        	secondsCounter = 0;
+        if(currentSecond == 5){
+        	currentMinute = currentMinute + 1;
+        	currentSecond = 0;
         }else{
-        	currentMinute = currentMinute + 0.10;
+        	currentSecond ++;
         }
       } -> countingDown;
-      after(1.0) [minutesRemaining == numMins] / {
-      
+      after(1.0) [currentMinute >= numMins && currentSecond >= numSecs] / {
+      	secondsCounter = 0;
       } -> idle;
     }
   }
@@ -89,9 +91,39 @@ class PlaySong{
   }
   
   void displayTime() {
-    System.out.println("DISPLAY: "+currentMinute);
+    System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
   } 
-	
+
+  public static void main(String[] argv) {
+   	PlaySong p = new PlaySong();
+   	System.out.println("Enter Command :");
+   	p.setNumMins(6);
+   	p.setNumSecs(5);
+   	p.setArtistName("Owens Ehimen");
+   	p.setSongTitle("Test");
+    Scanner s = new Scanner(System.in);
+    String command;
+    while(true) {
+      command = s.nextLine();
+      switch(command) {
+        case "quit": System.exit(0);
+        case "play":
+          p.playSong();
+          break;
+        case ">":
+          
+          break;          
+        case "r":
+          
+          break;          
+        case "c":
+          
+          break;          
+        default:
+          break;
+      }
+    }
+  }
 	
 }
 

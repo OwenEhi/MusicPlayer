@@ -14,12 +14,14 @@ public class PlaySong implements Runnable
   //------------------------
 
   //PlaySong Attributes
-  private float currentMinute;
-  private float numMins;
+  private int currentMinute;
+  private int currentSecond;
+  private int numMins;
+  private int numSecs;
   private int secondsCounter;
   private String songTitle;
   private String albumTitle;
-  private String artistTitle;
+  private String artistName;
   private String playListTitle;
   private boolean paused;
 
@@ -45,12 +47,14 @@ public class PlaySong implements Runnable
 
   public PlaySong()
   {
-    currentMinute = (float) 0.0;
-    numMins = (float) 0.0;
+    currentMinute = 0;
+    currentSecond = 0;
+    numMins = 0;
+    numSecs = 0;
     secondsCounter = 0;
     songTitle = "";
     albumTitle = "";
-    artistTitle = "";
+    artistName = "";
     playListTitle = "";
     paused = false;
     setCore(Core.idle);
@@ -65,7 +69,7 @@ public class PlaySong implements Runnable
   // INTERFACE
   //------------------------
 
-  public boolean setCurrentMinute(float aCurrentMinute)
+  public boolean setCurrentMinute(int aCurrentMinute)
   {
     boolean wasSet = false;
     currentMinute = aCurrentMinute;
@@ -73,10 +77,26 @@ public class PlaySong implements Runnable
     return wasSet;
   }
 
-  public boolean setNumMins(float aNumMins)
+  public boolean setCurrentSecond(int aCurrentSecond)
+  {
+    boolean wasSet = false;
+    currentSecond = aCurrentSecond;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setNumMins(int aNumMins)
   {
     boolean wasSet = false;
     numMins = aNumMins;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setNumSecs(int aNumSecs)
+  {
+    boolean wasSet = false;
+    numSecs = aNumSecs;
     wasSet = true;
     return wasSet;
   }
@@ -105,10 +125,10 @@ public class PlaySong implements Runnable
     return wasSet;
   }
 
-  public boolean setArtistTitle(String aArtistTitle)
+  public boolean setArtistName(String aArtistName)
   {
     boolean wasSet = false;
-    artistTitle = aArtistTitle;
+    artistName = aArtistName;
     wasSet = true;
     return wasSet;
   }
@@ -133,14 +153,24 @@ public class PlaySong implements Runnable
    * This will be used to display the time remaining and track that time
    * In a real system, this would be in minutes, but it will be seconds in this simulation
    */
-  public float getCurrentMinute()
+  public int getCurrentMinute()
   {
     return currentMinute;
   }
 
-  public float getNumMins()
+  public int getCurrentSecond()
+  {
+    return currentSecond;
+  }
+
+  public int getNumMins()
   {
     return numMins;
+  }
+
+  public int getNumSecs()
+  {
+    return numSecs;
   }
 
   public int getSecondsCounter()
@@ -158,9 +188,9 @@ public class PlaySong implements Runnable
     return albumTitle;
   }
 
-  public String getArtistTitle()
+  public String getArtistName()
   {
-    return artistTitle;
+    return artistName;
   }
 
   public String getPlayListTitle()
@@ -333,7 +363,7 @@ public class PlaySong implements Runnable
     return wasEventProcessed;
   }
 
-  public boolean _startTimer(Float numMins)
+  public boolean _startTimer(Integer numMins,Integer numSecs)
   {
     boolean wasEventProcessed = false;
     
@@ -341,15 +371,15 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case idle:
-        // line 68 "PlaySong.ump"
-        currentMinute == 0.00
+        // line 70 "PlaySong.ump"
+        currentMinute = 0; currentSecond = 0;
         setTimingSm(TimingSm.countingDown);
         wasEventProcessed = true;
         break;
       case countingDown:
         exitTimingSm();
-        // line 71 "PlaySong.ump"
-        currentMinute == 0.00
+        // line 73 "PlaySong.ump"
+        currentMinute = 0; currentSecond = 0;
         setTimingSm(TimingSm.countingDown);
         wasEventProcessed = true;
         break;
@@ -368,16 +398,16 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case countingDown:
-        if (minutesRemaining<getNumMins()&&!getPaused())
+        if (getCurrentMinute()<getNumMins()&&!getPaused())
         {
           exitTimingSm();
-        // line 72 "PlaySong.ump"
+        // line 74 "PlaySong.ump"
           displayTime();
-        if(secondsCounter == 5){
-        	currentMinute = currentMinute + 0.50;
-        	secondsCounter = 0;
+        if(currentSecond == 5){
+        	currentMinute = currentMinute + 1;
+        	currentSecond = 0;
         }else{
-        	currentMinute = currentMinute + 0.10;
+        	currentSecond ++;
         }
           setTimingSm(TimingSm.countingDown);
           wasEventProcessed = true;
@@ -399,11 +429,11 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case countingDown:
-        if (minutesRemaining.equals(getNumMins()))
+        if (getCurrentMinute()>=getNumMins()&&getCurrentSecond()>=getNumSecs())
         {
           exitTimingSm();
-        // line 81 "PlaySong.ump"
-          
+        // line 83 "PlaySong.ump"
+          secondsCounter = 0;
           setTimingSm(TimingSm.idle);
           wasEventProcessed = true;
           break;
@@ -424,10 +454,10 @@ public class PlaySong implements Runnable
     switch(core)
     {
       case play:
-        // line 29 "PlaySong.ump"
-        display("Now playing : " + songTitle + " by " + artistTitle);
-        // line 30 "PlaySong.ump"
-        startTimer(numMins);
+        // line 31 "PlaySong.ump"
+        display("Now playing : " + songTitle + " by " + artistName);
+        // line 32 "PlaySong.ump"
+        startTimer(numMins,numSecs);
         break;
     }
   }
@@ -612,10 +642,11 @@ public class PlaySong implements Runnable
     queue.put(new Message(MessageType.stopPlay_M, null));
   }
 
-  public void startTimer (Float numMins)
+  public void startTimer (Integer numMins,Integer numSecs)
   {
-    Vector v = new Vector(1);
+    Vector v = new Vector(2);
     v.add(0, numMins);
+    v.add(1, numSecs);
     queue.put(new Message(MessageType.startTimer_M, v));
   }
 
@@ -669,7 +700,7 @@ public class PlaySong implements Runnable
           status = _stopPlay();
           break;
         case startTimer_M:
-          status = _startTimer((Float) m.param.elementAt(0));
+          status = _startTimer((Integer) m.param.elementAt(0), (Integer) m.param.elementAt(1));
           break;
         case timeoutcountingDownTocountingDown_M:
           status = _timeoutcountingDownTocountingDown();
@@ -685,14 +716,48 @@ public class PlaySong implements Runnable
       }
     }
   }
-  // line 88 "PlaySong.ump"
+  // line 90 "PlaySong.ump"
   public void display(String s){
     System.out.println(s);
   }
 
-  // line 92 "PlaySong.ump"
+  // line 94 "PlaySong.ump"
   public void displayTime(){
-    System.out.println("DISPLAY: "+currentMinute);
+    System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
+  }
+
+  // line 98 "PlaySong.ump"
+   public static  void main(String [] argv){
+    Thread.currentThread().setUncaughtExceptionHandler(new UmpleExceptionHandler());
+    Thread.setDefaultUncaughtExceptionHandler(new UmpleExceptionHandler());
+    PlaySong p = new PlaySong();
+   	System.out.println("Enter Command :");
+   	p.setNumMins(6);
+   	p.setNumSecs(5);
+   	p.setArtistName("Owens Ehimen");
+   	p.setSongTitle("Test");
+    Scanner s = new Scanner(System.in);
+    String command;
+    while(true) {
+      command = s.nextLine();
+      switch(command) {
+        case "quit": System.exit(0);
+        case "play":
+          p.playSong();
+          break;
+        case ">":
+          
+          break;          
+        case "r":
+          
+          break;          
+        case "c":
+          
+          break;          
+        default:
+          break;
+      }
+    }
   }
 
 
@@ -700,12 +765,138 @@ public class PlaySong implements Runnable
   {
     return super.toString() + "["+
             "currentMinute" + ":" + getCurrentMinute()+ "," +
+            "currentSecond" + ":" + getCurrentSecond()+ "," +
             "numMins" + ":" + getNumMins()+ "," +
+            "numSecs" + ":" + getNumSecs()+ "," +
             "secondsCounter" + ":" + getSecondsCounter()+ "," +
             "songTitle" + ":" + getSongTitle()+ "," +
             "albumTitle" + ":" + getAlbumTitle()+ "," +
-            "artistTitle" + ":" + getArtistTitle()+ "," +
+            "artistName" + ":" + getArtistName()+ "," +
             "playListTitle" + ":" + getPlayListTitle()+ "," +
             "paused" + ":" + getPaused()+ "]";
+  }
+  public static class UmpleExceptionHandler implements Thread.UncaughtExceptionHandler
+  {
+    public void uncaughtException(Thread t, Throwable e)
+    {
+      translate(e);
+      if(e.getCause()!=null)
+      {
+        translate(e.getCause());
+      }
+      e.printStackTrace();
+    }
+    public void translate(Throwable e)
+    {
+      java.util.List<StackTraceElement> result = new java.util.ArrayList<StackTraceElement>();
+      StackTraceElement[] elements = e.getStackTrace();
+      try
+      {
+        for(StackTraceElement element:elements)
+        {
+          String className = element.getClassName();
+          String methodName = element.getMethodName();
+          boolean methodFound = false;
+          int index = className.lastIndexOf('.')+1;
+          try {
+            java.lang.reflect.Method query = this.getClass().getMethod(className.substring(index)+"_"+methodName,new Class[]{});
+            UmpleSourceData sourceInformation = (UmpleSourceData)query.invoke(this,new Object[]{});
+            for(int i=0;i<sourceInformation.size();++i)
+            {
+              // To compensate for any offsets caused by injected code we need to loop through the other references to this function
+              //  and adjust the start / length of the function.
+              int functionStart = sourceInformation.getJavaLine(i) + (("main".equals(methodName))?3:1);
+              int functionEnd = functionStart + sourceInformation.getLength(i);
+              int afterInjectionLines = 0;
+              //  We can leverage the fact that all inject statements are added to the uncaught exception list 
+              //   before the functions that they are within
+              for (int j = 0; j < i; j++) {
+                if (sourceInformation.getJavaLine(j) - 1 >= functionStart &&
+                    sourceInformation.getJavaLine(j) - 1 <= functionEnd &&
+                    sourceInformation.getJavaLine(j) - 1 <= element.getLineNumber()) {
+                    // A before injection, +2 for the comments surrounding the injected code
+                    if (sourceInformation.getJavaLine(j) - 1 == functionStart) {
+                        functionStart += sourceInformation.getLength(j) + 2;
+                        functionEnd += sourceInformation.getLength(j) + 2;
+                    } else {
+                        // An after injection
+                        afterInjectionLines += sourceInformation.getLength(j) + 2;
+                        functionEnd += sourceInformation.getLength(j) + 2;
+                    }
+                }
+              }
+              int distanceFromStart = element.getLineNumber() - functionStart - afterInjectionLines;
+              if(distanceFromStart>=0&&distanceFromStart<=sourceInformation.getLength(i))
+              {
+                result.add(new StackTraceElement(element.getClassName(),element.getMethodName(),sourceInformation.getFileName(i),sourceInformation.getUmpleLine(i)+distanceFromStart));
+                methodFound = true;
+                break;
+              }
+            }
+          }
+          catch (Exception e2){}
+          if(!methodFound)
+          {
+            result.add(element);
+          }
+        }
+      }
+      catch (Exception e1)
+      {
+        e1.printStackTrace();
+      }
+      e.setStackTrace(result.toArray(new StackTraceElement[0]));
+    }
+  //The following methods Map Java lines back to their original Umple file / line    
+    public UmpleSourceData PlaySong_displayTime(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(93).setJavaLines(724).setLengths(1);}
+    public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(26).setJavaLines(245).setLengths(1);}
+    public UmpleSourceData PlaySong_display(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(89).setJavaLines(720).setLengths(1);}
+    public UmpleSourceData PlaySong_startTimer(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(69, 72).setJavaLines(374, 381).setLengths(1, 1);}
+    public UmpleSourceData PlaySong_timeoutcountingDownTocountingDown(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(73, 73).setJavaLines(402, 405).setLengths(1, 7);}
+    public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(30, 31).setJavaLines(458, 459).setLengths(1, 1);}
+    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(97).setJavaLines(729).setLengths(28);}
+    public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(82, 82).setJavaLines(433, 436).setLengths(1, 1);}
+
+  }
+  public static class UmpleSourceData
+  {
+    String[] umpleFileNames;
+    Integer[] umpleLines;
+    Integer[] umpleJavaLines;
+    Integer[] umpleLengths;
+    
+    public UmpleSourceData(){
+    }
+    public String getFileName(int i){
+      return umpleFileNames[i];
+    }
+    public Integer getUmpleLine(int i){
+      return umpleLines[i];
+    }
+    public Integer getJavaLine(int i){
+      return umpleJavaLines[i];
+    }
+    public Integer getLength(int i){
+      return umpleLengths[i];
+    }
+    public UmpleSourceData setFileNames(String... filenames){
+      umpleFileNames = filenames;
+      return this;
+    }
+    public UmpleSourceData setUmpleLines(Integer... umplelines){
+      umpleLines = umplelines;
+      return this;
+    }
+    public UmpleSourceData setJavaLines(Integer... javalines){
+      umpleJavaLines = javalines;
+      return this;
+    }
+    public UmpleSourceData setLengths(Integer... lengths){
+      umpleLengths = lengths;
+      return this;
+    }
+    public int size(){
+      return umpleFileNames.length;
+    }
   }
 }
