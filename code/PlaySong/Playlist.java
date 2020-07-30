@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 39 "model.ump"
-// line 92 "model.ump"
+// line 37 "model.ump"
+// line 86 "model.ump"
 public class Playlist
 {
 
@@ -22,7 +22,6 @@ public class Playlist
   //Playlist Associations
   private List<Song> songs;
   private Library library;
-  private List<Genre> genres;
 
   //------------------------
   // CONSTRUCTOR
@@ -40,7 +39,6 @@ public class Playlist
     {
       throw new RuntimeException("Unable to create playlist due to library. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
-    genres = new ArrayList<Genre>();
   }
 
   //------------------------
@@ -132,36 +130,6 @@ public class Playlist
   public Library getLibrary()
   {
     return library;
-  }
-  /* Code from template association_GetMany */
-  public Genre getGenre(int index)
-  {
-    Genre aGenre = genres.get(index);
-    return aGenre;
-  }
-
-  public List<Genre> getGenres()
-  {
-    List<Genre> newGenres = Collections.unmodifiableList(genres);
-    return newGenres;
-  }
-
-  public int numberOfGenres()
-  {
-    int number = genres.size();
-    return number;
-  }
-
-  public boolean hasGenres()
-  {
-    boolean has = genres.size() > 0;
-    return has;
-  }
-
-  public int indexOfGenre(Genre aGenre)
-  {
-    int index = genres.indexOf(aGenre);
-    return index;
   }
   /* Code from template association_IsNumberOfValidMethod */
   public boolean isNumberOfSongsValid()
@@ -274,78 +242,6 @@ public class Playlist
     wasSet = true;
     return wasSet;
   }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfGenres()
-  {
-    return 0;
-  }
-  /* Code from template association_AddManyToOne */
-  public Genre addGenre(String aName, boolean aFavourite)
-  {
-    return new Genre(aName, aFavourite, this);
-  }
-
-  public boolean addGenre(Genre aGenre)
-  {
-    boolean wasAdded = false;
-    if (genres.contains(aGenre)) { return false; }
-    Playlist existingPlaylist = aGenre.getPlaylist();
-    boolean isNewPlaylist = existingPlaylist != null && !this.equals(existingPlaylist);
-    if (isNewPlaylist)
-    {
-      aGenre.setPlaylist(this);
-    }
-    else
-    {
-      genres.add(aGenre);
-    }
-    wasAdded = true;
-    return wasAdded;
-  }
-
-  public boolean removeGenre(Genre aGenre)
-  {
-    boolean wasRemoved = false;
-    //Unable to remove aGenre, as it must always have a playlist
-    if (!this.equals(aGenre.getPlaylist()))
-    {
-      genres.remove(aGenre);
-      wasRemoved = true;
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addGenreAt(Genre aGenre, int index)
-  {  
-    boolean wasAdded = false;
-    if(addGenre(aGenre))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfGenres()) { index = numberOfGenres() - 1; }
-      genres.remove(aGenre);
-      genres.add(index, aGenre);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMoveGenreAt(Genre aGenre, int index)
-  {
-    boolean wasAdded = false;
-    if(genres.contains(aGenre))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfGenres()) { index = numberOfGenres() - 1; }
-      genres.remove(aGenre);
-      genres.add(index, aGenre);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addGenreAt(aGenre, index);
-    }
-    return wasAdded;
-  }
 
   public void delete()
   {
@@ -359,11 +255,6 @@ public class Playlist
     if(placeholderLibrary != null)
     {
       placeholderLibrary.removePlaylist(this);
-    }
-    for(int i=genres.size(); i > 0; i--)
-    {
-      Genre aGenre = genres.get(i - 1);
-      aGenre.delete();
     }
   }
 

@@ -6,8 +6,7 @@ class Artist
   name;
    boolean favourite;
   1..* -- 1..* Song;
-  1..* -- 1 Genre;
-}
+  }
 
 class Album
 {
@@ -16,7 +15,6 @@ class Album
   int lengthMin;
   int lengthSec;
   0..1 -- 7..* Song;
-  0..* -- 1..* Artist;
   0..* -- 1 Library;
 }
 
@@ -47,7 +45,6 @@ class Playlist
 class Genre
 {
   1 -- 1..* Song;
-  0..* -- 1 Playlist;
   name;
   boolean favourite;
 }//$?[End_of_model]$?
@@ -58,13 +55,11 @@ namespace -;
 class Artist
 {
   position.association Artist__Song 0,11 144,101;
-  position.association Artist__Genre 0,44 144,51;
   position 543 384 143 75;
 }
 
 class Album
 {
-  position.association Album__Artist 112,109 55,0;
   position.association Album__Song 12,109 30,0;
     position.association Album__Library 0,3 110,19;
 position 531 35 143 114;
@@ -73,7 +68,6 @@ position 531 35 143 114;
 class Genre
 {
   position 90 376 143 84;
-  position.association Genre__Playlist 126,0 60,109;
   position.association Genre__Song 17,0 0,65;
 }
 

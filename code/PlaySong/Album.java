@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 13 "model.ump"
-// line 66 "model.ump"
+// line 12 "model.ump"
+// line 62 "model.ump"
 public class Album
 {
 
@@ -21,14 +21,13 @@ public class Album
 
   //Album Associations
   private List<Song> songs;
-  private List<Artist> artists;
   private Library library;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public Album(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Song[] allSongs, Artist[] allArtists)
+  public Album(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Song... allSongs)
   {
     title = aTitle;
     favourite = aFavourite;
@@ -39,12 +38,6 @@ public class Album
     if (!didAddSongs)
     {
       throw new RuntimeException("Unable to create Album, must have at least 7 songs. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
-    }
-    artists = new ArrayList<Artist>();
-    boolean didAddArtists = setArtists(allArtists);
-    if (!didAddArtists)
-    {
-      throw new RuntimeException("Unable to create Album, must have at least 1 artists. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
@@ -136,36 +129,6 @@ public class Album
   public int indexOfSong(Song aSong)
   {
     int index = songs.indexOf(aSong);
-    return index;
-  }
-  /* Code from template association_GetMany */
-  public Artist getArtist(int index)
-  {
-    Artist aArtist = artists.get(index);
-    return aArtist;
-  }
-
-  public List<Artist> getArtists()
-  {
-    List<Artist> newArtists = Collections.unmodifiableList(artists);
-    return newArtists;
-  }
-
-  public int numberOfArtists()
-  {
-    int number = artists.size();
-    return number;
-  }
-
-  public boolean hasArtists()
-  {
-    boolean has = artists.size() > 0;
-    return has;
-  }
-
-  public int indexOfArtist(Artist aArtist)
-  {
-    int index = artists.indexOf(aArtist);
     return index;
   }
   /* Code from template association_GetOne */
@@ -309,140 +272,6 @@ public class Album
     }
     return wasAdded;
   }
-  /* Code from template association_IsNumberOfValidMethod */
-  public boolean isNumberOfArtistsValid()
-  {
-    boolean isValid = numberOfArtists() >= minimumNumberOfArtists();
-    return isValid;
-  }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfArtists()
-  {
-    return 1;
-  }
-  /* Code from template association_AddManyToManyMethod */
-  public boolean addArtist(Artist aArtist)
-  {
-    boolean wasAdded = false;
-    if (artists.contains(aArtist)) { return false; }
-    artists.add(aArtist);
-    if (aArtist.indexOfAlbum(this) != -1)
-    {
-      wasAdded = true;
-    }
-    else
-    {
-      wasAdded = aArtist.addAlbum(this);
-      if (!wasAdded)
-      {
-        artists.remove(aArtist);
-      }
-    }
-    return wasAdded;
-  }
-  /* Code from template association_AddMStarToMany */
-  public boolean removeArtist(Artist aArtist)
-  {
-    boolean wasRemoved = false;
-    if (!artists.contains(aArtist))
-    {
-      return wasRemoved;
-    }
-
-    if (numberOfArtists() <= minimumNumberOfArtists())
-    {
-      return wasRemoved;
-    }
-
-    int oldIndex = artists.indexOf(aArtist);
-    artists.remove(oldIndex);
-    if (aArtist.indexOfAlbum(this) == -1)
-    {
-      wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aArtist.removeAlbum(this);
-      if (!wasRemoved)
-      {
-        artists.add(oldIndex,aArtist);
-      }
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_SetMStarToMany */
-  public boolean setArtists(Artist... newArtists)
-  {
-    boolean wasSet = false;
-    ArrayList<Artist> verifiedArtists = new ArrayList<Artist>();
-    for (Artist aArtist : newArtists)
-    {
-      if (verifiedArtists.contains(aArtist))
-      {
-        continue;
-      }
-      verifiedArtists.add(aArtist);
-    }
-
-    if (verifiedArtists.size() != newArtists.length || verifiedArtists.size() < minimumNumberOfArtists())
-    {
-      return wasSet;
-    }
-
-    ArrayList<Artist> oldArtists = new ArrayList<Artist>(artists);
-    artists.clear();
-    for (Artist aNewArtist : verifiedArtists)
-    {
-      artists.add(aNewArtist);
-      if (oldArtists.contains(aNewArtist))
-      {
-        oldArtists.remove(aNewArtist);
-      }
-      else
-      {
-        aNewArtist.addAlbum(this);
-      }
-    }
-
-    for (Artist anOldArtist : oldArtists)
-    {
-      anOldArtist.removeAlbum(this);
-    }
-    wasSet = true;
-    return wasSet;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addArtistAt(Artist aArtist, int index)
-  {  
-    boolean wasAdded = false;
-    if(addArtist(aArtist))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfArtists()) { index = numberOfArtists() - 1; }
-      artists.remove(aArtist);
-      artists.add(index, aArtist);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMoveArtistAt(Artist aArtist, int index)
-  {
-    boolean wasAdded = false;
-    if(artists.contains(aArtist))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfArtists()) { index = numberOfArtists() - 1; }
-      artists.remove(aArtist);
-      artists.add(index, aArtist);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addArtistAt(aArtist, index);
-    }
-    return wasAdded;
-  }
   /* Code from template association_SetOneToMany */
   public boolean setLibrary(Library aLibrary)
   {
@@ -470,12 +299,6 @@ public class Album
       setAlbum(aSong,null);
     }
     songs.clear();
-    ArrayList<Artist> copyOfArtists = new ArrayList<Artist>(artists);
-    artists.clear();
-    for(Artist aArtist : copyOfArtists)
-    {
-      aArtist.removeAlbum(this);
-    }
     Library placeholderLibrary = library;
     this.library = null;
     if(placeholderLibrary != null)

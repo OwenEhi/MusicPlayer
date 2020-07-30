@@ -1,7 +1,6 @@
 
-use music.*;
-
 class PlaySong{
+
 	// This will be used to display the time remaining and track that time
   // In a real system, this would be in minutes, but it will be seconds in this simulation
   Integer currentMinute = 0;
@@ -174,13 +173,11 @@ class PlaySong{
 
   public static void main(String[] argv) {
    	PlaySong p = new PlaySong();
-   	System.out.println("Enter Command :");
-   	p.setNumMins(6);
-   	p.setNumSecs(5);
-   	p.setArtistName("Owens Ehimen");
-   	p.setSongTitle("Test");
+   	Library lib = new Library("Your Library");
+   	
     Scanner s = new Scanner(System.in);
     String command;
+    
     while(true) {
       command = s.nextLine();
       switch(command) {
