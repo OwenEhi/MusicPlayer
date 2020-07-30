@@ -170,100 +170,228 @@ class PlaySong{
   		display("Invalid entry");
   	}
   }
+  
 
   public static void main(String[] argv) {
    	PlaySong p = new PlaySong();
    	Library lib = new Library("Your Library");
-   	
-    Scanner s = new Scanner(System.in);
-    String command;
-    
-    while(true) {
-      command = s.nextLine();
-      switch(command) {
-        case "quit": System.exit(0);
+   	Scanner s = new Scanner(System.in);
+   	Boolean songLoaded = false;
+   
+   System.out.println("What would you like to do? : ");
+		String action;
+   		while(true){
+   			action = s.nextLine();
+   			switch(action){
+   				case "quit":
+   					System.exit(0);
+   				
+   				case "create song":
+   					String title = "";
+   					Boolean favourite = false;
+   					Integer lengthMin = 0;
+   					Integer lengthSec = 0;
+   					Genre gn = new Genre(" ", false);
+   					Artist art = new Artist(" ", false);
+   					
+   					Song sng = new Song(title, favourite, lengthMin, lengthSec, lib, gn);
+   					
+   					Boolean isValid = false;
+   					Boolean addAnother = true;
+   					System.out.println("Song title :");
+   					title = s.nextLine();
+   					sng.setTitle(title);
+   					
+   					while(addAnother.equals(true)){
+   						System.out.println("Artist :");
+   						art.setName(s.nextLine());
+   						sng.addArtist(art);
+   						System.out.println("Add another artist? (y/n) ");
+   						String response = s.nextLine();
+   						if(response.equals("y")){
+   							addAnother = true;
+   						}else{
+   							addAnother = false;
+   						}
+   					}
+   					
+   					System.out.println("Is it a favourite? (y/n) :");
+   					String answer = s.nextLine();
+   					while(isValid.equals(false))
+   					if(answer.equals("y")){
+   						sng.setFavourite(true);
+   						isValid = true;
+   					}else if (answer.equals("n")){
+   						sng.setFavourite(false);
+   						isValid = true;
+   					}else{
+   						System.out.println("Invalid Input!");
+   						isValid = false;
+   						answer = s.nextLine();
+   					}
+   					
+   					isValid = false;
+   					
+   					System.out.println("Song Length (minutes) :");
+   					Integer ans = Integer.parseInt(s.nextLine());
+   					
+   					while(isValid.equals(false))
+   					if(ans >= 0 && ans instanceof Integer){
+   						sng.setLengthMin(ans);
+   						isValid = true;
+   					}else{
+   						System.out.println("Invalid Input!");
+   						isValid = false;
+   						ans = Integer.parseInt(s.nextLine());
+   					}
+   					isValid = false;
+   					
+   					System.out.println("Song Length (seconds) :");
+   					int answe = Integer.parseInt(s.nextLine());
+   					while(isValid.equals(false))
+   					if(answe >= 0 && answe <= 5){
+   						sng.setLengthSec(answe);
+   						isValid = true;
+   					}else{
+   						System.out.println("Invalid Input!");
+   						isValid = false;
+   						answe = Integer.parseInt(s.nextLine());
+   					}
+   					
+   					System.out.println("Genre :");
+   					gn.setName(s.nextLine());
+   					lib.addSong(sng);
+   					System.out.println("Song Created");
+   					break;
+   					
+   				case "load song":
+   						System.out.println("Song name :");
+   						String songTitle = s.nextLine();
+   						System.out.println("First Artist name :");
+   						String targetArtist = "";
+   						targetArtist = s.nextLine();
+   						
+   						
+   						for (Song select : lib.getSongs()){
+   							if(select.getTitle() ==  songTitle && select.getArtist(0).getName() == targetArtist){
+   								p.setSongTitle(select.getTitle());
+   								p.setArtistName(targetArtist);
+   								p.setNumMins(select.getLengthMin());
+   								p.setNumSecs(select.getLengthSec());
+   								System.out.println("Song loaded");
+   								break;
+   							}
+   						}
+   				
+   				case "search song":
+   						System.out.println("Song name :");
+   						String songTitle2 = s.nextLine();
+   						System.out.println("First Artist name :");
+   						String targetArtist2 = s.nextLine();
+   						List<Song> librarySongs = lib.getSongs();
+   						
+   						for (int i = 0; i<lib.numberOfSongs(); i++){
+   							Song select = lib.getSong(i);
+   							System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
+   							System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
+   							
+   							
+   							if(select.getTitle().equals(songTitle2) && select.getArtist(0).getName().equals(targetArtist2)){
+   								System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
+   								System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
+   								System.out.println("Song Found");
+   								break;
+   							}
+   							System.out.println("Not Found");
+   							}
+   							break;
+   						
         
-        //Playing the selected song
-        case "play": 
-        if(p.getPaused()){
-        	p.resumePlay();
-        }else{
-        	p.playSong();
-        }
-          break;
-          
-       //Pausing the song being played   
-        case "p":
-          p.pausePlay();
-          break;          
-       
-       //Stopping the song being played/paused
-        case "s":
-          if(p.getPaused()){
-        	p.stopMusic();
-        }else{
-        	p.stopPlay();
-        }
-          break; 
-        
-        //Forwarding the song being played           
-        case ">":
-          p.forwardPlay();
-          break;
-          
-        //Fast forwarding the song being played           
-        case ">>":
-          p.fastForwardPlay();
-          break;
-          
-        //rewinding the song being played           
-        case "<":
-          p.backWard();
-          break; 
-          
-        //fast rewinding the song being played           
-        case "<<":
-          p.fastBackward();
-          break;
-          
-        //replaying the song previously played          
-        case "r":
-          p.replaySong();
-          break; 
-          
-        //replaying the song previously played          
-        case "+":
-          p.increaseVolume();
-          break; 
-          
-        //replaying the song previously played          
-        case "-":
-          p.decreaseVolume();
-          break;
-        
-        //replaying the song previously played          
-        case "skip":
-        Integer minute = 0;
-        Integer second = 0;
-        System.out.print("Enter target minute: ");
-        minute = Integer.parseInt(s.nextLine());
-        p.setTargetMin(minute);
-        System.out.print("Enter target second: ");
-        second = Integer.parseInt(s.nextLine());
-        p.setTargetSec(second);
-          if(p.getPaused()){
-          	p.skipToPoint();
-          }else{
-          	p.startAtPoint();
-          }
-          
-          break; 
-                   
-        default:
-          break;
-      }
+			        //Playing the selected song
+			        case "play": 
+			        if(p.getPaused()){
+			        	p.resumePlay();
+			        }else{
+			        	p.playSong();
+			        }
+			          break;
+			          
+			       //Pausing the song being played   
+			        case "p":
+			          p.pausePlay();
+			          break;          
+			       
+			       //Stopping the song being played/paused
+			        case "s":
+			          if(p.getPaused()){
+			        	p.stopMusic();
+			        }else{
+			        	p.stopPlay();
+			        }
+			          break; 
+			        
+			        //Forwarding the song being played           
+			        case ">":
+			          p.forwardPlay();
+			          break;
+			          
+			        //Fast forwarding the song being played           
+			        case ">>":
+			          p.fastForwardPlay();
+			          break;
+			          
+			        //rewinding the song being played           
+			        case "<":
+			          p.backWard();
+			          break; 
+			          
+			        //fast rewinding the song being played           
+			        case "<<":
+			          p.fastBackward();
+			          break;
+			          
+			        //replaying the song previously played          
+			        case "r":
+			          p.replaySong();
+			          break; 
+			          
+			        //replaying the song previously played          
+			        case "+":
+			          p.increaseVolume();
+			          break; 
+			          
+			        //replaying the song previously played          
+			        case "-":
+			          p.decreaseVolume();
+			          break;
+			        
+			        //replaying the song previously played          
+			        case "skip":
+			        Integer minute = 0;
+			        Integer second = 0;
+			        System.out.print("Enter target minute: ");
+			        minute = Integer.parseInt(s.nextLine());
+			        p.setTargetMin(minute);
+			        System.out.print("Enter target second: ");
+			        second = Integer.parseInt(s.nextLine());
+			        p.setTargetSec(second);
+			          if(p.getPaused()){
+			          	p.skipToPoint();
+			          }else{
+			          	p.startAtPoint();
+			          }
+			          
+			          break; 
+			                   
+			        default:
+			          break;
+   				
+
     }
   }
+   	}
+   	
+    
 	
 }
 

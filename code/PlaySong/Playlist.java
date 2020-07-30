@@ -27,13 +27,18 @@ public class Playlist
   // CONSTRUCTOR
   //------------------------
 
-  public Playlist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary)
+  public Playlist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Song... allSongs)
   {
     title = aTitle;
     favourite = aFavourite;
     lengthMin = aLengthMin;
     lengthSec = aLengthSec;
     songs = new ArrayList<Song>();
+    boolean didAddSongs = setSongs(allSongs);
+    if (!didAddSongs)
+    {
+      throw new RuntimeException("Unable to create Playlist, must have at least 3 songs. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
+    }
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
     {
@@ -131,43 +136,27 @@ public class Playlist
   {
     return library;
   }
-  /* Code from template association_IsNumberOfValidMethod */
-  public boolean isNumberOfSongsValid()
-  {
-    boolean isValid = numberOfSongs() >= minimumNumberOfSongs();
-    return isValid;
-  }
   /* Code from template association_MinimumNumberOfMethod */
   public static int minimumNumberOfSongs()
   {
     return 3;
   }
-  /* Code from template association_AddMandatoryManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Genre aGenre)
-  {
-    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aLibrary, this, aGenre);
-    return aNewSong;
-  }
-
+  /* Code from template association_AddMNToOptionalOne */
   public boolean addSong(Song aSong)
   {
     boolean wasAdded = false;
     if (songs.contains(aSong)) { return false; }
     Playlist existingPlaylist = aSong.getPlaylist();
-    boolean isNewPlaylist = existingPlaylist != null && !this.equals(existingPlaylist);
-
-    if (isNewPlaylist && existingPlaylist.numberOfSongs() <= minimumNumberOfSongs())
+    if (existingPlaylist != null && existingPlaylist.numberOfSongs() <= minimumNumberOfSongs())
     {
       return wasAdded;
     }
-    if (isNewPlaylist)
+    else if (existingPlaylist != null)
     {
-      aSong.setPlaylist(this);
+      existingPlaylist.songs.remove(aSong);
     }
-    else
-    {
-      songs.add(aSong);
-    }
+    songs.add(aSong);
+    setPlaylist(aSong,this);
     wasAdded = true;
     return wasAdded;
   }
@@ -175,21 +164,81 @@ public class Playlist
   public boolean removeSong(Song aSong)
   {
     boolean wasRemoved = false;
-    //Unable to remove aSong, as it must always have a playlist
-    if (this.equals(aSong.getPlaylist()))
+    if (songs.contains(aSong) && numberOfSongs() > minimumNumberOfSongs())
     {
-      return wasRemoved;
+      songs.remove(aSong);
+      setPlaylist(aSong,null);
+      wasRemoved = true;
     }
-
-    //playlist already at minimum (3)
-    if (numberOfSongs() <= minimumNumberOfSongs())
-    {
-      return wasRemoved;
-    }
-
-    songs.remove(aSong);
-    wasRemoved = true;
     return wasRemoved;
+  }
+  /* Code from template association_SetMNToOptionalOne */
+  public boolean setSongs(Song... newSongs)
+  {
+    boolean wasSet = false;
+    if (newSongs.length < minimumNumberOfSongs())
+    {
+      return wasSet;
+    }
+
+    ArrayList<Song> checkNewSongs = new ArrayList<Song>();
+    HashMap<Playlist,Integer> playlistToNewSongs = new HashMap<Playlist,Integer>();
+    for (Song aSong : newSongs)
+    {
+      if (checkNewSongs.contains(aSong))
+      {
+        return wasSet;
+      }
+      else if (aSong.getPlaylist() != null && !this.equals(aSong.getPlaylist()))
+      {
+        Playlist existingPlaylist = aSong.getPlaylist();
+        if (!playlistToNewSongs.containsKey(existingPlaylist))
+        {
+          playlistToNewSongs.put(existingPlaylist, new Integer(existingPlaylist.numberOfSongs()));
+        }
+        Integer currentCount = playlistToNewSongs.get(existingPlaylist);
+        int nextCount = currentCount - 1;
+        if (nextCount < 3)
+        {
+          return wasSet;
+        }
+        playlistToNewSongs.put(existingPlaylist, new Integer(nextCount));
+      }
+      checkNewSongs.add(aSong);
+    }
+
+    songs.removeAll(checkNewSongs);
+
+    for (Song orphan : songs)
+    {
+      setPlaylist(orphan, null);
+    }
+    songs.clear();
+    for (Song aSong : newSongs)
+    {
+      if (aSong.getPlaylist() != null)
+      {
+        aSong.getPlaylist().songs.remove(aSong);
+      }
+      setPlaylist(aSong, this);
+      songs.add(aSong);
+    }
+    wasSet = true;
+    return wasSet;
+  }
+  /* Code from template association_GetPrivate */
+  private void setPlaylist(Song aSong, Playlist aPlaylist)
+  {
+    try
+    {
+      java.lang.reflect.Field mentorField = aSong.getClass().getDeclaredField("playlist");
+      mentorField.setAccessible(true);
+      mentorField.set(aSong, aPlaylist);
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException("Issue internally setting aPlaylist to aSong", e);
+    }
   }
   /* Code from template association_AddIndexControlFunctions */
   public boolean addSongAt(Song aSong, int index)
@@ -245,11 +294,11 @@ public class Playlist
 
   public void delete()
   {
-    for(int i=songs.size(); i > 0; i--)
+    for(Song aSong : songs)
     {
-      Song aSong = songs.get(i - 1);
-      aSong.delete();
+      setPlaylist(aSong,null);
     }
+    songs.clear();
     Library placeholderLibrary = library;
     this.library = null;
     if(placeholderLibrary != null)

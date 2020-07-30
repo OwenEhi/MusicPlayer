@@ -145,9 +145,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Playlist aPlaylist, Genre aGenre)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Genre aGenre)
   {
-    return new Song(aTitle, aFavourite, aLengthMin, aLengthSec, this, aPlaylist, aGenre);
+    return new Song(aTitle, aFavourite, aLengthMin, aLengthSec, this, aGenre);
   }
 
   public boolean addSong(Song aSong)
@@ -217,9 +217,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Playlist addPlaylist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec)
+  public Playlist addPlaylist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Song... allSongs)
   {
-    return new Playlist(aTitle, aFavourite, aLengthMin, aLengthSec, this);
+    return new Playlist(aTitle, aFavourite, aLengthMin, aLengthSec, this, allSongs);
   }
 
   public boolean addPlaylist(Playlist aPlaylist)

@@ -39,7 +39,7 @@ class Playlist
   boolean favourite;
   int lengthMin;
   int lengthSec;
-  1 -- 3..* Song;
+  0..1 -- 3..* Song;
 }
 
 class Genre
@@ -54,7 +54,7 @@ namespace -;
 
 class Artist
 {
-  position.association Artist__Song 0,11 144,101;
+  position.association Artist__Song 0,11 144,102;
   position 543 384 143 75;
 }
 
@@ -79,7 +79,7 @@ class Library
 
 class Song
 {
-  position 297 201 143 114;
+  position 319 237 143 109;
 }
 
 class Playlist

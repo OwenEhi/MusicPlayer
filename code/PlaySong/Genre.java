@@ -102,9 +102,9 @@ public class Genre
     return 1;
   }
   /* Code from template association_AddMandatoryManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Playlist aPlaylist)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary)
   {
-    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aLibrary, aPlaylist, this);
+    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aLibrary, this);
     return aNewSong;
   }
 
