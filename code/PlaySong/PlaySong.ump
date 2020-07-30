@@ -264,24 +264,6 @@ class PlaySong{
    					System.out.println("Song Created");
    					break;
    					
-   				case "load song":
-   						System.out.println("Song name :");
-   						String songTitle = s.nextLine();
-   						System.out.println("First Artist name :");
-   						String targetArtist = "";
-   						targetArtist = s.nextLine();
-   						
-   						
-   						for (Song select : lib.getSongs()){
-   							if(select.getTitle() ==  songTitle && select.getArtist(0).getName() == targetArtist){
-   								p.setSongTitle(select.getTitle());
-   								p.setArtistName(targetArtist);
-   								p.setNumMins(select.getLengthMin());
-   								p.setNumSecs(select.getLengthSec());
-   								System.out.println("Song loaded");
-   								break;
-   							}
-   						}
    				
    				case "search song":
    						System.out.println("Song name :");
@@ -292,17 +274,34 @@ class PlaySong{
    						
    						for (int i = 0; i<lib.numberOfSongs(); i++){
    							Song select = lib.getSong(i);
-   							System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
-   							System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
-   							
    							
    							if(select.getTitle().equals(songTitle2) && select.getArtist(0).getName().equals(targetArtist2)){
-   								System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
-   								System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
-   								System.out.println("Song Found");
+   								System.out.println ("Song : "+ select.getTitle() + " by " + select.getArtist(0).getName() + "(" + select.getLengthMin() + ":" + select.getLengthSec() + "0)");
+   								
+   								System.out.println("Play? (y/n)");
+   								String b = s.nextLine();
+   								Boolean inv = false;
+   								
+   								while(inv.equals(false)){
+   								  if(b.equals("y")){
+	   								p.setSongTitle(select.getTitle());
+	   								p.setArtistName(targetArtist2);
+	   								p.setNumMins(select.getLengthMin());
+	   								p.setNumSecs(select.getLengthSec());
+   									p.playSong();
+   									inv = true;
+   								}else if (b.equals("n")){
+   									inv = true;
+   								}else{
+   									System.out.println("Invalid input");
+   									System.out.println("Play? (y/n)");
+   									b = s.nextLine();
+   								}
+   								}
+ 
    								break;
    							}
-   							System.out.println("Not Found");
+   							System.out.println("Song not Found");
    							}
    							break;
    						

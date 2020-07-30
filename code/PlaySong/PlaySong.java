@@ -1642,24 +1642,6 @@ public class PlaySong implements Runnable
    					System.out.println("Song Created");
    					break;
    					
-   				case "load song":
-   						System.out.println("Song name :");
-   						String songTitle = s.nextLine();
-   						System.out.println("First Artist name :");
-   						String targetArtist = "";
-   						targetArtist = s.nextLine();
-   						
-   						
-   						for (Song select : lib.getSongs()){
-   							if(select.getTitle() ==  songTitle && select.getArtist(0).getName() == targetArtist){
-   								p.setSongTitle(select.getTitle());
-   								p.setArtistName(targetArtist);
-   								p.setNumMins(select.getLengthMin());
-   								p.setNumSecs(select.getLengthSec());
-   								System.out.println("Song loaded");
-   								break;
-   							}
-   						}
    				
    				case "search song":
    						System.out.println("Song name :");
@@ -1670,22 +1652,34 @@ public class PlaySong implements Runnable
    						
    						for (int i = 0; i<lib.numberOfSongs(); i++){
    							Song select = lib.getSong(i);
-   							System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
-   							System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
-   							
    							
    							if(select.getTitle().equals(songTitle2) && select.getArtist(0).getName().equals(targetArtist2)){
-   								System.out.println (select.getTitle() + "||" + select.getArtist(0).getName());
-   								System.out.println (select.getFavourite() + "||" + select.getLengthMin() + select.getLengthSec());
+   								System.out.println ("Song : "+ select.getTitle() + " by " + select.getArtist(0).getName() + "(" + select.getLengthMin() + ":" + select.getLengthSec() + "0)");
    								
-   								p.setSongTitle(select.getTitle());
-   								p.setArtistName(targetArtist2);
-   								p.setNumMins(select.getLengthMin());
-   								p.setNumSecs(select.getLengthSec());
-   								System.out.println("Song loaded");
+   								System.out.println("Play? (y/n)");
+   								String b = s.nextLine();
+   								Boolean inv = false;
+   								
+   								while(inv.equals(false)){
+   								  if(b.equals("y")){
+	   								p.setSongTitle(select.getTitle());
+	   								p.setArtistName(targetArtist2);
+	   								p.setNumMins(select.getLengthMin());
+	   								p.setNumSecs(select.getLengthSec());
+   									p.playSong();
+   									inv = true;
+   								}else if (b.equals("n")){
+   									inv = true;
+   								}else{
+   									System.out.println("Invalid input");
+   									System.out.println("Play? (y/n)");
+   									b = s.nextLine();
+   								}
+   								}
+ 
    								break;
    							}
-   							System.out.println("Not Found");
+   							System.out.println("Song not Found");
    							}
    							break;
    						
@@ -1875,7 +1869,7 @@ public class PlaySong implements Runnable
     public UmpleSourceData PlaySong_timeoutstopToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(99).setJavaLines(690).setLengths(1);}
     public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump").setUmpleLines(55, 61, 66, 71, 76, 77, 78, 83, 84, 97, 103, 104, 110, 111, 117).setJavaLines(890, 895, 900, 905, 910, 911, 912, 917, 918, 922, 927, 928, 933, 934, 939).setLengths(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);}
     public UmpleSourceData PlaySong_decreaseVolume(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(51).setJavaLines(509).setLengths(1);}
-    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(175).setJavaLines(1550).setLengths(221);}
+    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(175).setJavaLines(1550).setLengths(215);}
     public UmpleSourceData PlaySong_stopMusic(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(89).setJavaLines(646).setLengths(2);}
     public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(147, 147).setJavaLines(830, 833).setLengths(1, 2);}
     public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(32).setJavaLines(318).setLengths(3);}
