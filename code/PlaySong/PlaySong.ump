@@ -10,7 +10,7 @@ class PlaySong{
   Integer targetMin = 0;
   Integer targetSec = 0;
   
-  Integer volume = 0;
+  Integer volume = 7;
  
   
   Integer numMins = 0;
@@ -34,7 +34,10 @@ class PlaySong{
 		playSong/{
 		startTimer(numMins,numSecs);
 		display("Now playing : " + songTitle + " by " + artistName);
+		display("Volume :" + volume);
 		} -> play;
+		
+		startAtPoint-> skip;
 		
 		}
 		
@@ -46,6 +49,8 @@ class PlaySong{
 		pausePlay -> pause;
 		stopPlay/{stopped = true;} -> stop;
 		replaySong -> replay;
+		increaseVolume[(volume + 1) <= 10] -> VolumeUp;
+		decreaseVolume[(volume - 1) >= 0] -> VolumeDown;
 		}
 		
 		forward{
@@ -81,12 +86,13 @@ class PlaySong{
 		entry/{display("PAUSED");}
 		
 		resumePlay/{paused = false; 
-		System.out.println(currentMinute);
 		startTimer(currentMinute,currentSecond);} -> play;
 		
 		stopMusic/ {
 		paused = false;
 		stopped = true;} -> stop;
+		
+		skipToPoint[paused == true] -> skip;
 		}
 		
 		stop{
@@ -94,6 +100,31 @@ class PlaySong{
 		
 		after(1.0)/{stopped = false;} -> idle;
 		}
+		
+		VolumeUp{
+		entry/{volume = volume + 1;}
+		entry/{display("Volume :" + volume);}
+		
+		after(1.0) -> play;
+		}
+		
+		VolumeDown{
+		entry/{volume = volume - 1;}
+		entry/{display("Volume :" + volume);}
+		
+		after(1.0) -> play;
+		}
+		
+		skip{
+		entry/{skipTo(targetMin, targetSec);}
+		
+		after(0)/{
+		paused = false;
+		startTimer(currentMinute,currentSecond);
+		display("Now playing : " + songTitle + " by " + artistName);
+		display("Volume :" + volume);} -> play;
+		}
+		
 	}
 	
 	
@@ -131,6 +162,15 @@ class PlaySong{
   void displayTime() {
     System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
   } 
+  
+  void skipTo(Integer mins, Integer sec){
+  	if(mins >= 0 && mins <= numMins && sec >= 0 && sec <= numSecs){
+  		currentMinute = mins;
+  		currentSecond = sec;
+  	}else{
+  		display("Invalid entry");
+  	}
+  }
 
   public static void main(String[] argv) {
    	PlaySong p = new PlaySong();
@@ -192,6 +232,34 @@ class PlaySong{
         //replaying the song previously played          
         case "r":
           p.replaySong();
+          break; 
+          
+        //replaying the song previously played          
+        case "+":
+          p.increaseVolume();
+          break; 
+          
+        //replaying the song previously played          
+        case "-":
+          p.decreaseVolume();
+          break;
+        
+        //replaying the song previously played          
+        case "skip":
+        Integer minute = 0;
+        Integer second = 0;
+        System.out.print("Enter target minute: ");
+        minute = Integer.parseInt(s.nextLine());
+        p.setTargetMin(minute);
+        System.out.print("Enter target second: ");
+        second = Integer.parseInt(s.nextLine());
+        p.setTargetSec(second);
+          if(p.getPaused()){
+          	p.skipToPoint();
+          }else{
+          	p.startAtPoint();
+          }
+          
           break; 
                    
         default:
