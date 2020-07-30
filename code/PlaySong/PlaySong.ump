@@ -20,16 +20,16 @@ class PlaySong{
   
   // This will be set if a timed operation needs to not count down, e.g. when the door is open
   Boolean paused = false;
+  Boolean stopped = false;
 	
 	
 	queued Core{
 		idle{
-		playSong[!paused] -> play;
+		playSong/{startTimer(numMins,numSecs);} -> play;
 		}
 		
 		play{
 		entry/{display("Now playing : " + songTitle + " by " + artistName);}
-		entry/{startTimer(numMins,numSecs);}
 		
 		forwardPlay -> forward;
 		fastForward -> fastforward;
@@ -56,22 +56,33 @@ class PlaySong{
 		}
 		
 		pause{
+		entry/{paused = true;}
+		entry/{display("PAUSED");}
 		
+		resumePlay/{paused = false; 
+		System.out.println(currentMinute);
+		startTimer(currentMinute,currentSecond);} -> play;
+		
+		stopMusic/ {
+		paused = false;
+		stopped = true;} -> stop;
 		}
 		
 		stop{
+		entry/{display("Stopped");}
 		
+		after(1.0)/{stopped = false;} -> idle;
 		}
 	}
 	
 	
 	queued timingSm {
     idle {
-      startTimer(Integer numMins, Integer numSecs) / {currentMinute = 0; currentSecond = 0;} -> countingDown;
+      startTimer(Integer numMins, Integer numSecs) -> countingDown;
     }
     countingDown {
-      startTimer(Integer numMins, Integer numSecs) / {currentMinute = 0; currentSecond = 0;} -> countingDown;
-      after(1.0) [currentMinute < numMins && ! paused]  / {
+      startTimer(Integer numMins, Integer numSecs) -> countingDown;
+      after(1.0) [currentMinute < numMins && ! paused && !stopped]  / {
         displayTime();
         if(currentSecond == 5){
         	currentMinute = currentMinute + 1;
@@ -107,15 +118,28 @@ class PlaySong{
       command = s.nextLine();
       switch(command) {
         case "quit": System.exit(0);
-        case "play":
-          p.playSong();
+        
+        case "play": 
+        if(p.getPaused()){
+        	p.resumePlay();
+        }else{
+        	p.playSong();
+        }
           break;
-        case ">":
           
-          break;          
-        case "r":
           
+        case "p":
+          p.pausePlay();
           break;          
+        
+        case "s":
+          if(p.getPaused()){
+        	p.stopMusic();
+        }else{
+        	p.stopPlay();
+        }
+          break; 
+                   
         case "c":
           
           break;          

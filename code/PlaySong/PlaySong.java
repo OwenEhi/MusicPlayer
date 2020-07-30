@@ -24,6 +24,7 @@ public class PlaySong implements Runnable
   private String artistName;
   private String playListTitle;
   private boolean paused;
+  private boolean stopped;
 
   //PlaySong State Machines
   public enum Core { idle, play, forward, fastforward, backward, fastbackward, pause, stop }
@@ -32,12 +33,13 @@ public class PlaySong implements Runnable
   private TimingSm timingSm;
   
   //enumeration type of messages accepted by PlaySong
-  protected enum MessageType { playSong_M, forwardPlay_M, fastForward_M, backWard_M, fastBackward_M, pausePlay_M, stopPlay_M, startTimer_M, timeoutcountingDownTocountingDown_M, timeoutcountingDownToidle_M }
+  protected enum MessageType { playSong_M, forwardPlay_M, fastForward_M, backWard_M, fastBackward_M, pausePlay_M, stopPlay_M, resumePlay_M, stopMusic_M, timeoutstopToidle_M, startTimer_M, timeoutcountingDownTocountingDown_M, timeoutcountingDownToidle_M }
   
   MessageQueue queue;
   Thread removal;
 
   //Helper Variables
+  private TimedEventHandler timeoutstopToidleHandler;
   private TimedEventHandler timeoutcountingDownTocountingDownHandler;
   private TimedEventHandler timeoutcountingDownToidleHandler;
 
@@ -57,6 +59,7 @@ public class PlaySong implements Runnable
     artistName = "";
     playListTitle = "";
     paused = false;
+    stopped = false;
     setCore(Core.idle);
     setTimingSm(TimingSm.idle);
     queue = new MessageQueue();
@@ -149,6 +152,14 @@ public class PlaySong implements Runnable
     return wasSet;
   }
 
+  public boolean setStopped(boolean aStopped)
+  {
+    boolean wasSet = false;
+    stopped = aStopped;
+    wasSet = true;
+    return wasSet;
+  }
+
   /**
    * This will be used to display the time remaining and track that time
    * In a real system, this would be in minutes, but it will be seconds in this simulation
@@ -205,10 +216,20 @@ public class PlaySong implements Runnable
   {
     return paused;
   }
+
+  public boolean getStopped()
+  {
+    return stopped;
+  }
   /* Code from template attribute_IsBoolean */
   public boolean isPaused()
   {
     return paused;
+  }
+  /* Code from template attribute_IsBoolean */
+  public boolean isStopped()
+  {
+    return stopped;
   }
 
   public String getCoreFullName()
@@ -241,12 +262,10 @@ public class PlaySong implements Runnable
     switch (aCore)
     {
       case idle:
-        if (!getPaused())
-        {
-          setCore(Core.play);
-          wasEventProcessed = true;
-          break;
-        }
+        // line 28 "PlaySong.ump"
+        startTimer(numMins,numSecs);
+        setCore(Core.play);
+        wasEventProcessed = true;
         break;
       default:
         // Other states do respond to this event
@@ -363,6 +382,70 @@ public class PlaySong implements Runnable
     return wasEventProcessed;
   }
 
+  public boolean _resumePlay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case pause:
+        // line 62 "PlaySong.ump"
+        paused = false; 
+		System.out.println(currentMinute);
+		startTimer(currentMinute,currentSecond);
+        setCore(Core.play);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _stopMusic()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case pause:
+        // line 66 "PlaySong.ump"
+        paused = false;
+		stopped = true;
+        setCore(Core.stop);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutstopToidle()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case stop:
+        exitCore();
+        // line 74 "PlaySong.ump"
+        stopped = false;
+        setCore(Core.idle);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
   public boolean _startTimer(Integer numMins,Integer numSecs)
   {
     boolean wasEventProcessed = false;
@@ -371,15 +454,11 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case idle:
-        // line 70 "PlaySong.ump"
-        currentMinute = 0; currentSecond = 0;
         setTimingSm(TimingSm.countingDown);
         wasEventProcessed = true;
         break;
       case countingDown:
         exitTimingSm();
-        // line 73 "PlaySong.ump"
-        currentMinute = 0; currentSecond = 0;
         setTimingSm(TimingSm.countingDown);
         wasEventProcessed = true;
         break;
@@ -398,10 +477,10 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case countingDown:
-        if (getCurrentMinute()<getNumMins()&&!getPaused())
+        if (getCurrentMinute()<getNumMins()&&!getPaused()&&!getStopped())
         {
           exitTimingSm();
-        // line 74 "PlaySong.ump"
+        // line 85 "PlaySong.ump"
           displayTime();
         if(currentSecond == 5){
         	currentMinute = currentMinute + 1;
@@ -432,7 +511,7 @@ public class PlaySong implements Runnable
         if (getCurrentMinute()>=getNumMins()&&getCurrentSecond()>=getNumSecs())
         {
           exitTimingSm();
-        // line 83 "PlaySong.ump"
+        // line 94 "PlaySong.ump"
           secondsCounter = 0;
           setTimingSm(TimingSm.idle);
           wasEventProcessed = true;
@@ -446,6 +525,16 @@ public class PlaySong implements Runnable
     return wasEventProcessed;
   }
 
+  private void exitCore()
+  {
+    switch(core)
+    {
+      case stop:
+        stopTimeoutstopToidleHandler();
+        break;
+    }
+  }
+
   private void setCore(Core aCore)
   {
     core = aCore;
@@ -454,10 +543,19 @@ public class PlaySong implements Runnable
     switch(core)
     {
       case play:
-        // line 31 "PlaySong.ump"
-        display("Now playing : " + songTitle + " by " + artistName);
         // line 32 "PlaySong.ump"
-        startTimer(numMins,numSecs);
+        display("Now playing : " + songTitle + " by " + artistName);
+        break;
+      case pause:
+        // line 59 "PlaySong.ump"
+        paused = true;
+        // line 60 "PlaySong.ump"
+        display("PAUSED");
+        break;
+      case stop:
+        // line 72 "PlaySong.ump"
+        display("Stopped");
+        startTimeoutstopToidleHandler();
         break;
     }
   }
@@ -485,6 +583,16 @@ public class PlaySong implements Runnable
         startTimeoutcountingDownToidleHandler();
         break;
     }
+  }
+
+  private void startTimeoutstopToidleHandler()
+  {
+    timeoutstopToidleHandler = new TimedEventHandler(this,"timeoutstopToidle",1.0);
+  }
+
+  private void stopTimeoutstopToidleHandler()
+  {
+    timeoutstopToidleHandler.stop();
   }
 
   private void startTimeoutcountingDownTocountingDownHandler()
@@ -530,6 +638,15 @@ public class PlaySong implements Runnable
     
     public void run ()
     {
+      if ("timeoutstopToidle".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutstopToidle();
+        if (shouldRestart)
+        {
+          controller.startTimeoutstopToidleHandler();
+        }
+        return;
+      }
       if ("timeoutcountingDownTocountingDown".equals(timeoutMethodName))
       {
         boolean shouldRestart = !controller.timeoutcountingDownTocountingDown();
@@ -642,6 +759,24 @@ public class PlaySong implements Runnable
     queue.put(new Message(MessageType.stopPlay_M, null));
   }
 
+  public void resumePlay ()
+  {
+    queue.put(new Message(MessageType.resumePlay_M, null));
+  }
+
+  public void stopMusic ()
+  {
+    queue.put(new Message(MessageType.stopMusic_M, null));
+  }
+
+  public boolean timeoutstopToidle ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutstopToidle_M, null));
+    wasAdded = true;
+    return wasAdded;
+  }
+
   public void startTimer (Integer numMins,Integer numSecs)
   {
     Vector v = new Vector(2);
@@ -699,6 +834,15 @@ public class PlaySong implements Runnable
         case stopPlay_M:
           status = _stopPlay();
           break;
+        case resumePlay_M:
+          status = _resumePlay();
+          break;
+        case stopMusic_M:
+          status = _stopMusic();
+          break;
+        case timeoutstopToidle_M:
+          status = _timeoutstopToidle();
+          break;
         case startTimer_M:
           status = _startTimer((Integer) m.param.elementAt(0), (Integer) m.param.elementAt(1));
           break;
@@ -716,17 +860,17 @@ public class PlaySong implements Runnable
       }
     }
   }
-  // line 90 "PlaySong.ump"
+  // line 101 "PlaySong.ump"
   public void display(String s){
     System.out.println(s);
   }
 
-  // line 94 "PlaySong.ump"
+  // line 105 "PlaySong.ump"
   public void displayTime(){
     System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
   }
 
-  // line 98 "PlaySong.ump"
+  // line 109 "PlaySong.ump"
    public static  void main(String [] argv){
     Thread.currentThread().setUncaughtExceptionHandler(new UmpleExceptionHandler());
     Thread.setDefaultUncaughtExceptionHandler(new UmpleExceptionHandler());
@@ -742,15 +886,28 @@ public class PlaySong implements Runnable
       command = s.nextLine();
       switch(command) {
         case "quit": System.exit(0);
-        case "play":
-          p.playSong();
+        
+        case "play": 
+        if(p.getPaused()){
+        	p.resumePlay();
+        }else{
+        	p.playSong();
+        }
           break;
-        case ">":
           
-          break;          
-        case "r":
           
+        case "p":
+          p.pausePlay();
           break;          
+        
+        case "s":
+          if(p.getPaused()){
+        	p.stopMusic();
+        }else{
+        	p.stopPlay();
+        }
+          break; 
+                   
         case "c":
           
           break;          
@@ -773,7 +930,8 @@ public class PlaySong implements Runnable
             "albumTitle" + ":" + getAlbumTitle()+ "," +
             "artistName" + ":" + getArtistName()+ "," +
             "playListTitle" + ":" + getPlayListTitle()+ "," +
-            "paused" + ":" + getPaused()+ "]";
+            "paused" + ":" + getPaused()+ "," +
+            "stopped" + ":" + getStopped()+ "]";
   }
   public static class UmpleExceptionHandler implements Thread.UncaughtExceptionHandler
   {
@@ -848,14 +1006,16 @@ public class PlaySong implements Runnable
       e.setStackTrace(result.toArray(new StackTraceElement[0]));
     }
   //The following methods Map Java lines back to their original Umple file / line    
-    public UmpleSourceData PlaySong_displayTime(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(93).setJavaLines(724).setLengths(1);}
-    public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(26).setJavaLines(245).setLengths(1);}
-    public UmpleSourceData PlaySong_display(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(89).setJavaLines(720).setLengths(1);}
-    public UmpleSourceData PlaySong_startTimer(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(69, 72).setJavaLines(374, 381).setLengths(1, 1);}
-    public UmpleSourceData PlaySong_timeoutcountingDownTocountingDown(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(73, 73).setJavaLines(402, 405).setLengths(1, 7);}
-    public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(30, 31).setJavaLines(458, 459).setLengths(1, 1);}
-    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(97).setJavaLines(729).setLengths(28);}
-    public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(82, 82).setJavaLines(433, 436).setLengths(1, 1);}
+    public UmpleSourceData PlaySong_displayTime(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(104).setJavaLines(868).setLengths(1);}
+    public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(27).setJavaLines(265).setLengths(1);}
+    public UmpleSourceData PlaySong_display(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(100).setJavaLines(864).setLengths(1);}
+    public UmpleSourceData PlaySong_resumePlay(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(61).setJavaLines(393).setLengths(3);}
+    public UmpleSourceData PlaySong_timeoutstopToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(73).setJavaLines(437).setLengths(1);}
+    public UmpleSourceData PlaySong_timeoutcountingDownTocountingDown(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(84, 84).setJavaLines(481, 484).setLengths(1, 7);}
+    public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump").setUmpleLines(31, 58, 59, 71).setJavaLines(547, 551, 552, 556).setLengths(1, 1, 1, 1);}
+    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(108).setJavaLines(873).setLengths(41);}
+    public UmpleSourceData PlaySong_stopMusic(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(65).setJavaLines(415).setLengths(2);}
+    public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(93, 93).setJavaLines(512, 515).setLengths(1, 1);}
 
   }
   public static class UmpleSourceData
