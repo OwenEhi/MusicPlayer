@@ -7,6 +7,12 @@ class PlaySong{
   Integer currentMinute = 0;
   Integer currentSecond = 0;
   
+  Integer targetMin = 0;
+  Integer targetSec = 0;
+  
+  Integer volume = 0;
+ 
+  
   Integer numMins = 0;
   Integer numSecs = 0;
   
@@ -25,34 +31,49 @@ class PlaySong{
 	
 	queued Core{
 		idle{
-		playSong/{startTimer(numMins,numSecs);} -> play;
+		playSong/{
+		startTimer(numMins,numSecs);
+		display("Now playing : " + songTitle + " by " + artistName);
+		} -> play;
+		
 		}
 		
 		play{
-		entry/{display("Now playing : " + songTitle + " by " + artistName);}
-		
 		forwardPlay -> forward;
-		fastForward -> fastforward;
+		fastForwardPlay -> fastforward;
 		backWard -> backward;
 		fastBackward -> fastbackward;
 		pausePlay -> pause;
-		stopPlay -> stop;
+		stopPlay/{stopped = true;} -> stop;
+		replaySong -> replay;
 		}
 		
 		forward{
+		entry/{currentMinute = currentMinute + 1;}
+		after(1.0)->play;
 		
 		}
 		
 		fastforward{
-		
+		entry/{currentMinute = currentMinute + 2;}
+		after(1.0)->play;
 		}
 		
 		backward{
-		
+		entry/{currentMinute = currentMinute - 1;}
+		after(1.0)->play;
 		}
 		
 		fastbackward{
+		entry/{currentMinute = currentMinute - 2;}
+		after(1.0)->play;
+		}
 		
+		replay{
+		entry/{display("Now playing : " + songTitle + " by " + artistName);}
+		entry/{currentMinute = 0; currentSecond = 0;}
+		entry/{startTimer(numMins,numSecs);}
+		after(1.0)->play;
 		}
 		
 		pause{
@@ -69,7 +90,7 @@ class PlaySong{
 		}
 		
 		stop{
-		entry/{display("Stopped");}
+		entry/{display(songTitle +" Stopped");}
 		
 		after(1.0)/{stopped = false;} -> idle;
 		}
@@ -84,6 +105,9 @@ class PlaySong{
       startTimer(Integer numMins, Integer numSecs) -> countingDown;
       after(1.0) [currentMinute < numMins && ! paused && !stopped]  / {
         displayTime();
+        if(currentMinute < 0){
+        	currentMinute = 0;
+        }
         if(currentSecond == 5){
         	currentMinute = currentMinute + 1;
         	currentSecond = 0;
@@ -91,9 +115,12 @@ class PlaySong{
         	currentSecond ++;
         }
       } -> countingDown;
-      after(1.0) [currentMinute >= numMins && currentSecond >= numSecs] / {
+      after(1.0) [currentMinute >= numMins] / {
       	secondsCounter = 0;
+      	display(songTitle +  " Ended.");
       } -> idle;
+      
+      
     }
   }
   
@@ -119,6 +146,7 @@ class PlaySong{
       switch(command) {
         case "quit": System.exit(0);
         
+        //Playing the selected song
         case "play": 
         if(p.getPaused()){
         	p.resumePlay();
@@ -127,11 +155,12 @@ class PlaySong{
         }
           break;
           
-          
+       //Pausing the song being played   
         case "p":
           p.pausePlay();
           break;          
-        
+       
+       //Stopping the song being played/paused
         case "s":
           if(p.getPaused()){
         	p.stopMusic();
@@ -139,10 +168,32 @@ class PlaySong{
         	p.stopPlay();
         }
           break; 
-                   
-        case "c":
+        
+        //Forwarding the song being played           
+        case ">":
+          p.forwardPlay();
+          break;
           
-          break;          
+        //Fast forwarding the song being played           
+        case ">>":
+          p.fastForwardPlay();
+          break;
+          
+        //rewinding the song being played           
+        case "<":
+          p.backWard();
+          break; 
+          
+        //fast rewinding the song being played           
+        case "<<":
+          p.fastBackward();
+          break;
+          
+        //replaying the song previously played          
+        case "r":
+          p.replaySong();
+          break; 
+                   
         default:
           break;
       }

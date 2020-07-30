@@ -16,6 +16,9 @@ public class PlaySong implements Runnable
   //PlaySong Attributes
   private int currentMinute;
   private int currentSecond;
+  private int targetMin;
+  private int targetSec;
+  private int volume;
   private int numMins;
   private int numSecs;
   private int secondsCounter;
@@ -27,18 +30,23 @@ public class PlaySong implements Runnable
   private boolean stopped;
 
   //PlaySong State Machines
-  public enum Core { idle, play, forward, fastforward, backward, fastbackward, pause, stop }
+  public enum Core { idle, play, forward, fastforward, backward, fastbackward, replay, pause, stop }
   private Core core;
   public enum TimingSm { idle, countingDown }
   private TimingSm timingSm;
   
   //enumeration type of messages accepted by PlaySong
-  protected enum MessageType { playSong_M, forwardPlay_M, fastForward_M, backWard_M, fastBackward_M, pausePlay_M, stopPlay_M, resumePlay_M, stopMusic_M, timeoutstopToidle_M, startTimer_M, timeoutcountingDownTocountingDown_M, timeoutcountingDownToidle_M }
+  protected enum MessageType { playSong_M, forwardPlay_M, fastForwardPlay_M, backWard_M, fastBackward_M, pausePlay_M, stopPlay_M, replaySong_M, timeoutforwardToplay_M, timeoutfastforwardToplay_M, timeoutbackwardToplay_M, timeoutfastbackwardToplay_M, timeoutreplayToplay_M, resumePlay_M, stopMusic_M, timeoutstopToidle_M, startTimer_M, timeoutcountingDownTocountingDown_M, timeoutcountingDownToidle_M }
   
   MessageQueue queue;
   Thread removal;
 
   //Helper Variables
+  private TimedEventHandler timeoutforwardToplayHandler;
+  private TimedEventHandler timeoutfastforwardToplayHandler;
+  private TimedEventHandler timeoutbackwardToplayHandler;
+  private TimedEventHandler timeoutfastbackwardToplayHandler;
+  private TimedEventHandler timeoutreplayToplayHandler;
   private TimedEventHandler timeoutstopToidleHandler;
   private TimedEventHandler timeoutcountingDownTocountingDownHandler;
   private TimedEventHandler timeoutcountingDownToidleHandler;
@@ -51,6 +59,9 @@ public class PlaySong implements Runnable
   {
     currentMinute = 0;
     currentSecond = 0;
+    targetMin = 0;
+    targetSec = 0;
+    volume = 0;
     numMins = 0;
     numSecs = 0;
     secondsCounter = 0;
@@ -84,6 +95,30 @@ public class PlaySong implements Runnable
   {
     boolean wasSet = false;
     currentSecond = aCurrentSecond;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setTargetMin(int aTargetMin)
+  {
+    boolean wasSet = false;
+    targetMin = aTargetMin;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setTargetSec(int aTargetSec)
+  {
+    boolean wasSet = false;
+    targetSec = aTargetSec;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setVolume(int aVolume)
+  {
+    boolean wasSet = false;
+    volume = aVolume;
     wasSet = true;
     return wasSet;
   }
@@ -174,6 +209,21 @@ public class PlaySong implements Runnable
     return currentSecond;
   }
 
+  public int getTargetMin()
+  {
+    return targetMin;
+  }
+
+  public int getTargetSec()
+  {
+    return targetSec;
+  }
+
+  public int getVolume()
+  {
+    return volume;
+  }
+
   public int getNumMins()
   {
     return numMins;
@@ -262,8 +312,9 @@ public class PlaySong implements Runnable
     switch (aCore)
     {
       case idle:
-        // line 28 "PlaySong.ump"
+        // line 34 "PlaySong.ump"
         startTimer(numMins,numSecs);
+		display("Now playing : " + songTitle + " by " + artistName);
         setCore(Core.play);
         wasEventProcessed = true;
         break;
@@ -292,7 +343,7 @@ public class PlaySong implements Runnable
     return wasEventProcessed;
   }
 
-  public boolean _fastForward()
+  public boolean _fastForwardPlay()
   {
     boolean wasEventProcessed = false;
     
@@ -372,7 +423,122 @@ public class PlaySong implements Runnable
     switch (aCore)
     {
       case play:
+        // line 47 "PlaySong.ump"
+        stopped = true;
         setCore(Core.stop);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _replaySong()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case play:
+        setCore(Core.replay);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutforwardToplay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case forward:
+        exitCore();
+        setCore(Core.play);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutfastforwardToplay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case fastforward:
+        exitCore();
+        setCore(Core.play);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutbackwardToplay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case backward:
+        exitCore();
+        setCore(Core.play);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutfastbackwardToplay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case fastbackward:
+        exitCore();
+        setCore(Core.play);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean _timeoutreplayToplay()
+  {
+    boolean wasEventProcessed = false;
+    
+    Core aCore = core;
+    switch (aCore)
+    {
+      case replay:
+        exitCore();
+        setCore(Core.play);
         wasEventProcessed = true;
         break;
       default:
@@ -390,7 +556,7 @@ public class PlaySong implements Runnable
     switch (aCore)
     {
       case pause:
-        // line 62 "PlaySong.ump"
+        // line 83 "PlaySong.ump"
         paused = false; 
 		System.out.println(currentMinute);
 		startTimer(currentMinute,currentSecond);
@@ -412,7 +578,7 @@ public class PlaySong implements Runnable
     switch (aCore)
     {
       case pause:
-        // line 66 "PlaySong.ump"
+        // line 87 "PlaySong.ump"
         paused = false;
 		stopped = true;
         setCore(Core.stop);
@@ -434,7 +600,7 @@ public class PlaySong implements Runnable
     {
       case stop:
         exitCore();
-        // line 74 "PlaySong.ump"
+        // line 95 "PlaySong.ump"
         stopped = false;
         setCore(Core.idle);
         wasEventProcessed = true;
@@ -480,8 +646,11 @@ public class PlaySong implements Runnable
         if (getCurrentMinute()<getNumMins()&&!getPaused()&&!getStopped())
         {
           exitTimingSm();
-        // line 85 "PlaySong.ump"
+        // line 106 "PlaySong.ump"
           displayTime();
+        if(currentMinute < 0){
+        	currentMinute = 0;
+        }
         if(currentSecond == 5){
         	currentMinute = currentMinute + 1;
         	currentSecond = 0;
@@ -508,11 +677,12 @@ public class PlaySong implements Runnable
     switch (aTimingSm)
     {
       case countingDown:
-        if (getCurrentMinute()>=getNumMins()&&getCurrentSecond()>=getNumSecs())
+        if (getCurrentMinute()>=getNumMins())
         {
           exitTimingSm();
-        // line 94 "PlaySong.ump"
+        // line 118 "PlaySong.ump"
           secondsCounter = 0;
+      	display(songTitle +  " Ended.");
           setTimingSm(TimingSm.idle);
           wasEventProcessed = true;
           break;
@@ -529,6 +699,21 @@ public class PlaySong implements Runnable
   {
     switch(core)
     {
+      case forward:
+        stopTimeoutforwardToplayHandler();
+        break;
+      case fastforward:
+        stopTimeoutfastforwardToplayHandler();
+        break;
+      case backward:
+        stopTimeoutbackwardToplayHandler();
+        break;
+      case fastbackward:
+        stopTimeoutfastbackwardToplayHandler();
+        break;
+      case replay:
+        stopTimeoutreplayToplayHandler();
+        break;
       case stop:
         stopTimeoutstopToidleHandler();
         break;
@@ -542,19 +727,44 @@ public class PlaySong implements Runnable
     // entry actions and do activities
     switch(core)
     {
-      case play:
-        // line 32 "PlaySong.ump"
+      case forward:
+        // line 52 "PlaySong.ump"
+        currentMinute = currentMinute + 1;
+        startTimeoutforwardToplayHandler();
+        break;
+      case fastforward:
+        // line 58 "PlaySong.ump"
+        currentMinute = currentMinute + 2;
+        startTimeoutfastforwardToplayHandler();
+        break;
+      case backward:
+        // line 63 "PlaySong.ump"
+        currentMinute = currentMinute - 1;
+        startTimeoutbackwardToplayHandler();
+        break;
+      case fastbackward:
+        // line 68 "PlaySong.ump"
+        currentMinute = currentMinute - 2;
+        startTimeoutfastbackwardToplayHandler();
+        break;
+      case replay:
+        // line 73 "PlaySong.ump"
         display("Now playing : " + songTitle + " by " + artistName);
+        // line 74 "PlaySong.ump"
+        currentMinute = 0; currentSecond = 0;
+        // line 75 "PlaySong.ump"
+        startTimer(numMins,numSecs);
+        startTimeoutreplayToplayHandler();
         break;
       case pause:
-        // line 59 "PlaySong.ump"
+        // line 80 "PlaySong.ump"
         paused = true;
-        // line 60 "PlaySong.ump"
+        // line 81 "PlaySong.ump"
         display("PAUSED");
         break;
       case stop:
-        // line 72 "PlaySong.ump"
-        display("Stopped");
+        // line 93 "PlaySong.ump"
+        display(songTitle +" Stopped");
         startTimeoutstopToidleHandler();
         break;
     }
@@ -583,6 +793,56 @@ public class PlaySong implements Runnable
         startTimeoutcountingDownToidleHandler();
         break;
     }
+  }
+
+  private void startTimeoutforwardToplayHandler()
+  {
+    timeoutforwardToplayHandler = new TimedEventHandler(this,"timeoutforwardToplay",1.0);
+  }
+
+  private void stopTimeoutforwardToplayHandler()
+  {
+    timeoutforwardToplayHandler.stop();
+  }
+
+  private void startTimeoutfastforwardToplayHandler()
+  {
+    timeoutfastforwardToplayHandler = new TimedEventHandler(this,"timeoutfastforwardToplay",1.0);
+  }
+
+  private void stopTimeoutfastforwardToplayHandler()
+  {
+    timeoutfastforwardToplayHandler.stop();
+  }
+
+  private void startTimeoutbackwardToplayHandler()
+  {
+    timeoutbackwardToplayHandler = new TimedEventHandler(this,"timeoutbackwardToplay",1.0);
+  }
+
+  private void stopTimeoutbackwardToplayHandler()
+  {
+    timeoutbackwardToplayHandler.stop();
+  }
+
+  private void startTimeoutfastbackwardToplayHandler()
+  {
+    timeoutfastbackwardToplayHandler = new TimedEventHandler(this,"timeoutfastbackwardToplay",1.0);
+  }
+
+  private void stopTimeoutfastbackwardToplayHandler()
+  {
+    timeoutfastbackwardToplayHandler.stop();
+  }
+
+  private void startTimeoutreplayToplayHandler()
+  {
+    timeoutreplayToplayHandler = new TimedEventHandler(this,"timeoutreplayToplay",1.0);
+  }
+
+  private void stopTimeoutreplayToplayHandler()
+  {
+    timeoutreplayToplayHandler.stop();
   }
 
   private void startTimeoutstopToidleHandler()
@@ -638,6 +898,51 @@ public class PlaySong implements Runnable
     
     public void run ()
     {
+      if ("timeoutforwardToplay".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutforwardToplay();
+        if (shouldRestart)
+        {
+          controller.startTimeoutforwardToplayHandler();
+        }
+        return;
+      }
+      if ("timeoutfastforwardToplay".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutfastforwardToplay();
+        if (shouldRestart)
+        {
+          controller.startTimeoutfastforwardToplayHandler();
+        }
+        return;
+      }
+      if ("timeoutbackwardToplay".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutbackwardToplay();
+        if (shouldRestart)
+        {
+          controller.startTimeoutbackwardToplayHandler();
+        }
+        return;
+      }
+      if ("timeoutfastbackwardToplay".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutfastbackwardToplay();
+        if (shouldRestart)
+        {
+          controller.startTimeoutfastbackwardToplayHandler();
+        }
+        return;
+      }
+      if ("timeoutreplayToplay".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutreplayToplay();
+        if (shouldRestart)
+        {
+          controller.startTimeoutreplayToplayHandler();
+        }
+        return;
+      }
       if ("timeoutstopToidle".equals(timeoutMethodName))
       {
         boolean shouldRestart = !controller.timeoutstopToidle();
@@ -734,9 +1039,9 @@ public class PlaySong implements Runnable
     queue.put(new Message(MessageType.forwardPlay_M, null));
   }
 
-  public void fastForward ()
+  public void fastForwardPlay ()
   {
-    queue.put(new Message(MessageType.fastForward_M, null));
+    queue.put(new Message(MessageType.fastForwardPlay_M, null));
   }
 
   public void backWard ()
@@ -757,6 +1062,51 @@ public class PlaySong implements Runnable
   public void stopPlay ()
   {
     queue.put(new Message(MessageType.stopPlay_M, null));
+  }
+
+  public void replaySong ()
+  {
+    queue.put(new Message(MessageType.replaySong_M, null));
+  }
+
+  public boolean timeoutforwardToplay ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutforwardToplay_M, null));
+    wasAdded = true;
+    return wasAdded;
+  }
+
+  public boolean timeoutfastforwardToplay ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutfastforwardToplay_M, null));
+    wasAdded = true;
+    return wasAdded;
+  }
+
+  public boolean timeoutbackwardToplay ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutbackwardToplay_M, null));
+    wasAdded = true;
+    return wasAdded;
+  }
+
+  public boolean timeoutfastbackwardToplay ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutfastbackwardToplay_M, null));
+    wasAdded = true;
+    return wasAdded;
+  }
+
+  public boolean timeoutreplayToplay ()
+  {
+    boolean wasAdded = false;
+    queue.put(new Message(MessageType.timeoutreplayToplay_M, null));
+    wasAdded = true;
+    return wasAdded;
   }
 
   public void resumePlay ()
@@ -819,8 +1169,8 @@ public class PlaySong implements Runnable
         case forwardPlay_M:
           status = _forwardPlay();
           break;
-        case fastForward_M:
-          status = _fastForward();
+        case fastForwardPlay_M:
+          status = _fastForwardPlay();
           break;
         case backWard_M:
           status = _backWard();
@@ -833,6 +1183,24 @@ public class PlaySong implements Runnable
           break;
         case stopPlay_M:
           status = _stopPlay();
+          break;
+        case replaySong_M:
+          status = _replaySong();
+          break;
+        case timeoutforwardToplay_M:
+          status = _timeoutforwardToplay();
+          break;
+        case timeoutfastforwardToplay_M:
+          status = _timeoutfastforwardToplay();
+          break;
+        case timeoutbackwardToplay_M:
+          status = _timeoutbackwardToplay();
+          break;
+        case timeoutfastbackwardToplay_M:
+          status = _timeoutfastbackwardToplay();
+          break;
+        case timeoutreplayToplay_M:
+          status = _timeoutreplayToplay();
           break;
         case resumePlay_M:
           status = _resumePlay();
@@ -860,17 +1228,17 @@ public class PlaySong implements Runnable
       }
     }
   }
-  // line 101 "PlaySong.ump"
+  // line 128 "PlaySong.ump"
   public void display(String s){
     System.out.println(s);
   }
 
-  // line 105 "PlaySong.ump"
+  // line 132 "PlaySong.ump"
   public void displayTime(){
     System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
   }
 
-  // line 109 "PlaySong.ump"
+  // line 136 "PlaySong.ump"
    public static  void main(String [] argv){
     Thread.currentThread().setUncaughtExceptionHandler(new UmpleExceptionHandler());
     Thread.setDefaultUncaughtExceptionHandler(new UmpleExceptionHandler());
@@ -887,6 +1255,7 @@ public class PlaySong implements Runnable
       switch(command) {
         case "quit": System.exit(0);
         
+        //Playing the selected song
         case "play": 
         if(p.getPaused()){
         	p.resumePlay();
@@ -895,11 +1264,12 @@ public class PlaySong implements Runnable
         }
           break;
           
-          
+       //Pausing the song being played   
         case "p":
           p.pausePlay();
           break;          
-        
+       
+       //Stopping the song being played/paused
         case "s":
           if(p.getPaused()){
         	p.stopMusic();
@@ -907,10 +1277,32 @@ public class PlaySong implements Runnable
         	p.stopPlay();
         }
           break; 
-                   
-        case "c":
+        
+        //Forwarding the song being played           
+        case ">":
+          p.forwardPlay();
+          break;
           
-          break;          
+        //Fast forwarding the song being played           
+        case ">>":
+          p.fastForwardPlay();
+          break;
+          
+        //rewinding the song being played           
+        case "<":
+          p.backWard();
+          break; 
+          
+        //fast rewinding the song being played           
+        case "<<":
+          p.fastBackward();
+          break;
+          
+        //replaying the song previously played          
+        case "r":
+          p.replaySong();
+          break; 
+                   
         default:
           break;
       }
@@ -923,6 +1315,9 @@ public class PlaySong implements Runnable
     return super.toString() + "["+
             "currentMinute" + ":" + getCurrentMinute()+ "," +
             "currentSecond" + ":" + getCurrentSecond()+ "," +
+            "targetMin" + ":" + getTargetMin()+ "," +
+            "targetSec" + ":" + getTargetSec()+ "," +
+            "volume" + ":" + getVolume()+ "," +
             "numMins" + ":" + getNumMins()+ "," +
             "numSecs" + ":" + getNumSecs()+ "," +
             "secondsCounter" + ":" + getSecondsCounter()+ "," +
@@ -1006,16 +1401,17 @@ public class PlaySong implements Runnable
       e.setStackTrace(result.toArray(new StackTraceElement[0]));
     }
   //The following methods Map Java lines back to their original Umple file / line    
-    public UmpleSourceData PlaySong_displayTime(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(104).setJavaLines(868).setLengths(1);}
-    public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(27).setJavaLines(265).setLengths(1);}
-    public UmpleSourceData PlaySong_display(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(100).setJavaLines(864).setLengths(1);}
-    public UmpleSourceData PlaySong_resumePlay(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(61).setJavaLines(393).setLengths(3);}
-    public UmpleSourceData PlaySong_timeoutstopToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(73).setJavaLines(437).setLengths(1);}
-    public UmpleSourceData PlaySong_timeoutcountingDownTocountingDown(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(84, 84).setJavaLines(481, 484).setLengths(1, 7);}
-    public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump").setUmpleLines(31, 58, 59, 71).setJavaLines(547, 551, 552, 556).setLengths(1, 1, 1, 1);}
-    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(108).setJavaLines(873).setLengths(41);}
-    public UmpleSourceData PlaySong_stopMusic(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(65).setJavaLines(415).setLengths(2);}
-    public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(93, 93).setJavaLines(512, 515).setLengths(1, 1);}
+    public UmpleSourceData PlaySong_displayTime(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(131).setJavaLines(1236).setLengths(1);}
+    public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(33).setJavaLines(315).setLengths(2);}
+    public UmpleSourceData PlaySong_stopPlay(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(46).setJavaLines(426).setLengths(1);}
+    public UmpleSourceData PlaySong_display(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(127).setJavaLines(1232).setLengths(1);}
+    public UmpleSourceData PlaySong_resumePlay(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(82).setJavaLines(559).setLengths(3);}
+    public UmpleSourceData PlaySong_timeoutstopToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(94).setJavaLines(603).setLengths(1);}
+    public UmpleSourceData PlaySong_timeoutcountingDownTocountingDown(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(105, 105).setJavaLines(647, 650).setLengths(1, 10);}
+    public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump").setUmpleLines(51, 57, 62, 67, 72, 73, 74, 79, 80, 92).setJavaLines(732, 737, 742, 747, 752, 753, 754, 759, 760, 764).setLengths(1, 1, 1, 1, 1, 1, 1, 1, 1, 1);}
+    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(135).setJavaLines(1241).setLengths(65);}
+    public UmpleSourceData PlaySong_stopMusic(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(86).setJavaLines(581).setLengths(2);}
+    public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(117, 117).setJavaLines(681, 684).setLengths(1, 2);}
 
   }
   public static class UmpleSourceData
