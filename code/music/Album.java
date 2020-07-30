@@ -5,7 +5,7 @@
 import java.util.*;
 
 // line 13 "model.ump"
-// line 67 "model.ump"
+// line 66 "model.ump"
 public class Album
 {
 
@@ -28,13 +28,18 @@ public class Album
   // CONSTRUCTOR
   //------------------------
 
-  public Album(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Artist... allArtists)
+  public Album(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Song[] allSongs, Artist[] allArtists)
   {
     title = aTitle;
     favourite = aFavourite;
     lengthMin = aLengthMin;
     lengthSec = aLengthSec;
     songs = new ArrayList<Song>();
+    boolean didAddSongs = setSongs(allSongs);
+    if (!didAddSongs)
+    {
+      throw new RuntimeException("Unable to create Album, must have at least 7 songs. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
+    }
     artists = new ArrayList<Artist>();
     boolean didAddArtists = setArtists(allArtists);
     if (!didAddArtists)
@@ -168,43 +173,27 @@ public class Album
   {
     return library;
   }
-  /* Code from template association_IsNumberOfValidMethod */
-  public boolean isNumberOfSongsValid()
-  {
-    boolean isValid = numberOfSongs() >= minimumNumberOfSongs();
-    return isValid;
-  }
   /* Code from template association_MinimumNumberOfMethod */
   public static int minimumNumberOfSongs()
   {
     return 7;
   }
-  /* Code from template association_AddMandatoryManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Playlist aPlaylist, Genre aGenre)
-  {
-    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, this, aLibrary, aPlaylist, aGenre);
-    return aNewSong;
-  }
-
+  /* Code from template association_AddMNToOptionalOne */
   public boolean addSong(Song aSong)
   {
     boolean wasAdded = false;
     if (songs.contains(aSong)) { return false; }
     Album existingAlbum = aSong.getAlbum();
-    boolean isNewAlbum = existingAlbum != null && !this.equals(existingAlbum);
-
-    if (isNewAlbum && existingAlbum.numberOfSongs() <= minimumNumberOfSongs())
+    if (existingAlbum != null && existingAlbum.numberOfSongs() <= minimumNumberOfSongs())
     {
       return wasAdded;
     }
-    if (isNewAlbum)
+    else if (existingAlbum != null)
     {
-      aSong.setAlbum(this);
+      existingAlbum.songs.remove(aSong);
     }
-    else
-    {
-      songs.add(aSong);
-    }
+    songs.add(aSong);
+    setAlbum(aSong,this);
     wasAdded = true;
     return wasAdded;
   }
@@ -212,21 +201,81 @@ public class Album
   public boolean removeSong(Song aSong)
   {
     boolean wasRemoved = false;
-    //Unable to remove aSong, as it must always have a album
-    if (this.equals(aSong.getAlbum()))
+    if (songs.contains(aSong) && numberOfSongs() > minimumNumberOfSongs())
     {
-      return wasRemoved;
+      songs.remove(aSong);
+      setAlbum(aSong,null);
+      wasRemoved = true;
     }
-
-    //album already at minimum (7)
-    if (numberOfSongs() <= minimumNumberOfSongs())
-    {
-      return wasRemoved;
-    }
-
-    songs.remove(aSong);
-    wasRemoved = true;
     return wasRemoved;
+  }
+  /* Code from template association_SetMNToOptionalOne */
+  public boolean setSongs(Song... newSongs)
+  {
+    boolean wasSet = false;
+    if (newSongs.length < minimumNumberOfSongs())
+    {
+      return wasSet;
+    }
+
+    ArrayList<Song> checkNewSongs = new ArrayList<Song>();
+    HashMap<Album,Integer> albumToNewSongs = new HashMap<Album,Integer>();
+    for (Song aSong : newSongs)
+    {
+      if (checkNewSongs.contains(aSong))
+      {
+        return wasSet;
+      }
+      else if (aSong.getAlbum() != null && !this.equals(aSong.getAlbum()))
+      {
+        Album existingAlbum = aSong.getAlbum();
+        if (!albumToNewSongs.containsKey(existingAlbum))
+        {
+          albumToNewSongs.put(existingAlbum, new Integer(existingAlbum.numberOfSongs()));
+        }
+        Integer currentCount = albumToNewSongs.get(existingAlbum);
+        int nextCount = currentCount - 1;
+        if (nextCount < 7)
+        {
+          return wasSet;
+        }
+        albumToNewSongs.put(existingAlbum, new Integer(nextCount));
+      }
+      checkNewSongs.add(aSong);
+    }
+
+    songs.removeAll(checkNewSongs);
+
+    for (Song orphan : songs)
+    {
+      setAlbum(orphan, null);
+    }
+    songs.clear();
+    for (Song aSong : newSongs)
+    {
+      if (aSong.getAlbum() != null)
+      {
+        aSong.getAlbum().songs.remove(aSong);
+      }
+      setAlbum(aSong, this);
+      songs.add(aSong);
+    }
+    wasSet = true;
+    return wasSet;
+  }
+  /* Code from template association_GetPrivate */
+  private void setAlbum(Song aSong, Album aAlbum)
+  {
+    try
+    {
+      java.lang.reflect.Field mentorField = aSong.getClass().getDeclaredField("album");
+      mentorField.setAccessible(true);
+      mentorField.set(aSong, aAlbum);
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException("Issue internally setting aAlbum to aSong", e);
+    }
   }
   /* Code from template association_AddIndexControlFunctions */
   public boolean addSongAt(Song aSong, int index)
@@ -416,11 +465,11 @@ public class Album
 
   public void delete()
   {
-    for(int i=songs.size(); i > 0; i--)
+    for(Song aSong : songs)
     {
-      Song aSong = songs.get(i - 1);
-      aSong.delete();
+      setAlbum(aSong,null);
     }
+    songs.clear();
     ArrayList<Artist> copyOfArtists = new ArrayList<Artist>(artists);
     artists.clear();
     for(Artist aArtist : copyOfArtists)

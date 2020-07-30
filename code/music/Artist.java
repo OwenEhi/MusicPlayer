@@ -10,7 +10,7 @@ import java.util.*;
  * Classes for Music player application
  */
 // line 5 "model.ump"
-// line 60 "model.ump"
+// line 59 "model.ump"
 public class Artist
 {
 

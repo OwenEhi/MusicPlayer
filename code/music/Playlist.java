@@ -5,7 +5,7 @@
 import java.util.*;
 
 // line 39 "model.ump"
-// line 87 "model.ump"
+// line 92 "model.ump"
 public class Playlist
 {
 
@@ -175,9 +175,9 @@ public class Playlist
     return 3;
   }
   /* Code from template association_AddMandatoryManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Library aLibrary, Genre aGenre)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Genre aGenre)
   {
-    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aAlbum, aLibrary, this, aGenre);
+    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aLibrary, this, aGenre);
     return aNewSong;
   }
 

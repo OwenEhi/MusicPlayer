@@ -5,7 +5,7 @@
 import java.util.*;
 
 // line 31 "model.ump"
-// line 82 "model.ump"
+// line 87 "model.ump"
 public class Song
 {
 
@@ -30,18 +30,13 @@ public class Song
   // CONSTRUCTOR
   //------------------------
 
-  public Song(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Library aLibrary, Playlist aPlaylist, Genre aGenre)
+  public Song(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Playlist aPlaylist, Genre aGenre)
   {
     title = aTitle;
     favourite = aFavourite;
     lengthMin = aLengthMin;
     lengthSec = aLengthSec;
     artists = new ArrayList<Artist>();
-    boolean didAddAlbum = setAlbum(aAlbum);
-    if (!didAddAlbum)
-    {
-      throw new RuntimeException("Unable to create song due to album. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
-    }
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
     {
@@ -148,6 +143,12 @@ public class Song
   public Album getAlbum()
   {
     return album;
+  }
+
+  public boolean hasAlbum()
+  {
+    boolean has = album != null;
+    return has;
   }
   /* Code from template association_GetOne */
   public Library getLibrary()
@@ -298,37 +299,57 @@ public class Song
     }
     return wasAdded;
   }
-  /* Code from template association_SetOneToMandatoryMany */
+  /* Code from template association_SetOptionalOneToMandatoryMany */
   public boolean setAlbum(Album aAlbum)
   {
+    //
+    // This source of this source generation is association_SetOptionalOneToMandatoryMany.jet
+    // This set file assumes the generation of a maximumNumberOfXXX method does not exist because 
+    // it's not required (No upper bound)
+    //   
     boolean wasSet = false;
-    //Must provide album to song
-    if (aAlbum == null)
-    {
-      return wasSet;
-    }
-
-    if (album != null && album.numberOfSongs() <= Album.minimumNumberOfSongs())
-    {
-      return wasSet;
-    }
-
     Album existingAlbum = album;
-    album = aAlbum;
-    if (existingAlbum != null && !existingAlbum.equals(aAlbum))
+
+    if (existingAlbum == null)
     {
-      boolean didRemove = existingAlbum.removeSong(this);
-      if (!didRemove)
+      if (aAlbum != null)
       {
-        album = existingAlbum;
-        return wasSet;
+        if (aAlbum.addSong(this))
+        {
+          existingAlbum = aAlbum;
+          wasSet = true;
+        }
+      }
+    } 
+    else if (existingAlbum != null)
+    {
+      if (aAlbum == null)
+      {
+        if (existingAlbum.minimumNumberOfSongs() < existingAlbum.numberOfSongs())
+        {
+          existingAlbum.removeSong(this);
+          existingAlbum = aAlbum;  // aAlbum == null
+          wasSet = true;
+        }
+      } 
+      else
+      {
+        if (existingAlbum.minimumNumberOfSongs() < existingAlbum.numberOfSongs())
+        {
+          existingAlbum.removeSong(this);
+          aAlbum.addSong(this);
+          existingAlbum = aAlbum;
+          wasSet = true;
+        }
       }
     }
-    album.addSong(this);
-    wasSet = true;
+    if (wasSet)
+    {
+      album = existingAlbum;
+    }
     return wasSet;
   }
-  /* Code from template association_SetOneToMany */
+    /* Code from template association_SetOneToMany */
   public boolean setLibrary(Library aLibrary)
   {
     boolean wasSet = false;
@@ -423,11 +444,18 @@ public class Song
         aArtist.removeSong(this);
       }
     }
-    Album placeholderAlbum = album;
-    this.album = null;
-    if(placeholderAlbum != null)
+    if (album != null)
     {
-      placeholderAlbum.removeSong(this);
+      if (album.numberOfSongs() <= 7)
+      {
+        album.delete();
+      }
+      else
+      {
+        Album placeholderAlbum = album;
+        this.album = null;
+        placeholderAlbum.removeSong(this);
+      }
     }
     Library placeholderLibrary = library;
     this.library = null;

@@ -5,7 +5,7 @@
 import java.util.*;
 
 // line 24 "model.ump"
-// line 75 "model.ump"
+// line 81 "model.ump"
 public class Library
 {
 
@@ -145,9 +145,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Playlist aPlaylist, Genre aGenre)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Playlist aPlaylist, Genre aGenre)
   {
-    return new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aAlbum, this, aPlaylist, aGenre);
+    return new Song(aTitle, aFavourite, aLengthMin, aLengthSec, this, aPlaylist, aGenre);
   }
 
   public boolean addSong(Song aSong)
@@ -289,9 +289,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Album addAlbum(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Artist... allArtists)
+  public Album addAlbum(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Song[] allSongs, Artist[] allArtists)
   {
-    return new Album(aTitle, aFavourite, aLengthMin, aLengthSec, this, allArtists);
+    return new Album(aTitle, aFavourite, aLengthMin, aLengthSec, this, allSongs, allArtists);
   }
 
   public boolean addAlbum(Album aAlbum)

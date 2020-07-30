@@ -15,16 +15,16 @@ class Album
   boolean favourite;
   int lengthMin;
   int lengthSec;
-  1 -- 7..* Song;
-  * -- 1..* Artist;
-  * -- 1 Library;
+  0..1 -- 7..* Song;
+  0..* -- 1..* Artist;
+  0..* -- 1 Library;
 }
 
 class Library
 {
   name;
-  1 -- * Song;
-  1 -- * Playlist;
+  1 -- 0..* Song;
+  1 -- 0..* Playlist;
 }
 
 class Song
@@ -47,51 +47,49 @@ class Playlist
 class Genre
 {
   1 -- 1..* Song;
-  * -- 1 Playlist;
+  0..* -- 1 Playlist;
   name;
   boolean favourite;
-}
-
-//$?[End_of_model]$?
+}//$?[End_of_model]$?
 
 namespace -;
 
+
 class Artist
 {
-  position 478 337 144 75;
-  position.association Artist__Song 27,0 145,106;
-  position.association Artist__Genre 0,24 132,3;
+  position.association Artist__Song 0,11 144,101;
+  position.association Artist__Genre 0,44 144,51;
+  position 543 384 143 75;
 }
 
 class Album
 {
-  position 518 54 144 109;
-  position.association Album__Song 0,25 110,11;
-  position.association Album__Artist 27,109 93,0;
-  position.association Album__Library 0,5 110,17;
-}
-
-class Library
-{
-  position 284 48 109 58;
-  position.association Library__Song 46,41 47,0;
-  position.association Library__Playlist 0,16 145,11;
-}
-
-class Song
-{
-  position 278 181 144 109;
-}
-
-class Playlist
-{
-  position 75 65 144 109;
-  position.association Playlist__Song 145,76 0,17;
+  position.association Album__Artist 112,109 55,0;
+  position.association Album__Song 12,109 30,0;
+    position.association Album__Library 0,3 110,19;
+position 531 35 143 114;
 }
 
 class Genre
 {
-  position 121 342 109 58;
-  position.association Genre__Song 109,0 0,102;
-  position.association Genre__Playlist 35,0 66,109;
+  position 90 376 143 84;
+  position.association Genre__Playlist 126,0 60,109;
+  position.association Genre__Song 17,0 0,65;
+}
+
+class Library
+{
+  position 307 18 109 58;
+  position.association Library__Playlist 0,10 144,8;
+}
+
+class Song
+{
+  position 297 201 143 114;
+}
+
+class Playlist
+{
+  position 53 75 143 114;
+  position.association Playlist__Song 131,109 0,64;
 }
