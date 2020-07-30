@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 9 "model.ump"
-// line 63 "model.ump"
+// line 31 "model.ump"
+// line 82 "model.ump"
 public class Song
 {
 
@@ -15,64 +15,47 @@ public class Song
 
   //Song Attributes
   private String title;
-  private int yearOfRelease;
   private boolean favourite;
-  private int duration;
+  private int lengthMin;
+  private int lengthSec;
 
   //Song Associations
   private List<Artist> artists;
-  private Genre genre;
   private Album album;
-  private List<Playlist> playlists;
   private Library library;
+  private Playlist playlist;
+  private Genre genre;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public Song(String aTitle, int aYearOfRelease, boolean aFavourite, int aDuration, Genre aGenre, Album aAlbum, Library aLibrary)
+  public Song(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Library aLibrary, Playlist aPlaylist, Genre aGenre)
   {
     title = aTitle;
-    yearOfRelease = aYearOfRelease;
     favourite = aFavourite;
-    duration = aDuration;
+    lengthMin = aLengthMin;
+    lengthSec = aLengthSec;
     artists = new ArrayList<Artist>();
-    if (aGenre == null || aGenre.getSong() != null)
-    {
-      throw new RuntimeException("Unable to create Song due to aGenre. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
-    }
-    genre = aGenre;
     boolean didAddAlbum = setAlbum(aAlbum);
     if (!didAddAlbum)
     {
       throw new RuntimeException("Unable to create song due to album. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
-    playlists = new ArrayList<Playlist>();
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
     {
       throw new RuntimeException("Unable to create song due to library. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
-  }
-
-  public Song(String aTitle, int aYearOfRelease, boolean aFavourite, int aDuration, String aNameForGenre, boolean aFavouriteForGenre, Album aAlbum, Library aLibrary)
-  {
-    title = aTitle;
-    yearOfRelease = aYearOfRelease;
-    favourite = aFavourite;
-    duration = aDuration;
-    artists = new ArrayList<Artist>();
-    genre = new Genre(aNameForGenre, aFavouriteForGenre, this);
-    boolean didAddAlbum = setAlbum(aAlbum);
-    if (!didAddAlbum)
+    boolean didAddPlaylist = setPlaylist(aPlaylist);
+    if (!didAddPlaylist)
     {
-      throw new RuntimeException("Unable to create song due to album. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
+      throw new RuntimeException("Unable to create song due to playlist. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
-    playlists = new ArrayList<Playlist>();
-    boolean didAddLibrary = setLibrary(aLibrary);
-    if (!didAddLibrary)
+    boolean didAddGenre = setGenre(aGenre);
+    if (!didAddGenre)
     {
-      throw new RuntimeException("Unable to create song due to library. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
+      throw new RuntimeException("Unable to create song due to genre. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
   }
 
@@ -88,14 +71,6 @@ public class Song
     return wasSet;
   }
 
-  public boolean setYearOfRelease(int aYearOfRelease)
-  {
-    boolean wasSet = false;
-    yearOfRelease = aYearOfRelease;
-    wasSet = true;
-    return wasSet;
-  }
-
   public boolean setFavourite(boolean aFavourite)
   {
     boolean wasSet = false;
@@ -104,10 +79,18 @@ public class Song
     return wasSet;
   }
 
-  public boolean setDuration(int aDuration)
+  public boolean setLengthMin(int aLengthMin)
   {
     boolean wasSet = false;
-    duration = aDuration;
+    lengthMin = aLengthMin;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setLengthSec(int aLengthSec)
+  {
+    boolean wasSet = false;
+    lengthSec = aLengthSec;
     wasSet = true;
     return wasSet;
   }
@@ -117,19 +100,19 @@ public class Song
     return title;
   }
 
-  public int getYearOfRelease()
-  {
-    return yearOfRelease;
-  }
-
   public boolean getFavourite()
   {
     return favourite;
   }
 
-  public int getDuration()
+  public int getLengthMin()
   {
-    return duration;
+    return lengthMin;
+  }
+
+  public int getLengthSec()
+  {
+    return lengthSec;
   }
   /* Code from template association_GetMany */
   public Artist getArtist(int index)
@@ -162,49 +145,24 @@ public class Song
     return index;
   }
   /* Code from template association_GetOne */
-  public Genre getGenre()
-  {
-    return genre;
-  }
-  /* Code from template association_GetOne */
   public Album getAlbum()
   {
     return album;
-  }
-  /* Code from template association_GetMany */
-  public Playlist getPlaylist(int index)
-  {
-    Playlist aPlaylist = playlists.get(index);
-    return aPlaylist;
-  }
-
-  public List<Playlist> getPlaylists()
-  {
-    List<Playlist> newPlaylists = Collections.unmodifiableList(playlists);
-    return newPlaylists;
-  }
-
-  public int numberOfPlaylists()
-  {
-    int number = playlists.size();
-    return number;
-  }
-
-  public boolean hasPlaylists()
-  {
-    boolean has = playlists.size() > 0;
-    return has;
-  }
-
-  public int indexOfPlaylist(Playlist aPlaylist)
-  {
-    int index = playlists.indexOf(aPlaylist);
-    return index;
   }
   /* Code from template association_GetOne */
   public Library getLibrary()
   {
     return library;
+  }
+  /* Code from template association_GetOne */
+  public Playlist getPlaylist()
+  {
+    return playlist;
+  }
+  /* Code from template association_GetOne */
+  public Genre getGenre()
+  {
+    return genre;
   }
   /* Code from template association_IsNumberOfValidMethod */
   public boolean isNumberOfArtistsValid()
@@ -370,88 +328,6 @@ public class Song
     wasSet = true;
     return wasSet;
   }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfPlaylists()
-  {
-    return 0;
-  }
-  /* Code from template association_AddManyToManyMethod */
-  public boolean addPlaylist(Playlist aPlaylist)
-  {
-    boolean wasAdded = false;
-    if (playlists.contains(aPlaylist)) { return false; }
-    playlists.add(aPlaylist);
-    if (aPlaylist.indexOfSong(this) != -1)
-    {
-      wasAdded = true;
-    }
-    else
-    {
-      wasAdded = aPlaylist.addSong(this);
-      if (!wasAdded)
-      {
-        playlists.remove(aPlaylist);
-      }
-    }
-    return wasAdded;
-  }
-  /* Code from template association_RemoveMany */
-  public boolean removePlaylist(Playlist aPlaylist)
-  {
-    boolean wasRemoved = false;
-    if (!playlists.contains(aPlaylist))
-    {
-      return wasRemoved;
-    }
-
-    int oldIndex = playlists.indexOf(aPlaylist);
-    playlists.remove(oldIndex);
-    if (aPlaylist.indexOfSong(this) == -1)
-    {
-      wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aPlaylist.removeSong(this);
-      if (!wasRemoved)
-      {
-        playlists.add(oldIndex,aPlaylist);
-      }
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addPlaylistAt(Playlist aPlaylist, int index)
-  {  
-    boolean wasAdded = false;
-    if(addPlaylist(aPlaylist))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfPlaylists()) { index = numberOfPlaylists() - 1; }
-      playlists.remove(aPlaylist);
-      playlists.add(index, aPlaylist);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMovePlaylistAt(Playlist aPlaylist, int index)
-  {
-    boolean wasAdded = false;
-    if(playlists.contains(aPlaylist))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfPlaylists()) { index = numberOfPlaylists() - 1; }
-      playlists.remove(aPlaylist);
-      playlists.add(index, aPlaylist);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addPlaylistAt(aPlaylist, index);
-    }
-    return wasAdded;
-  }
   /* Code from template association_SetOneToMany */
   public boolean setLibrary(Library aLibrary)
   {
@@ -471,6 +347,66 @@ public class Song
     wasSet = true;
     return wasSet;
   }
+  /* Code from template association_SetOneToMandatoryMany */
+  public boolean setPlaylist(Playlist aPlaylist)
+  {
+    boolean wasSet = false;
+    //Must provide playlist to song
+    if (aPlaylist == null)
+    {
+      return wasSet;
+    }
+
+    if (playlist != null && playlist.numberOfSongs() <= Playlist.minimumNumberOfSongs())
+    {
+      return wasSet;
+    }
+
+    Playlist existingPlaylist = playlist;
+    playlist = aPlaylist;
+    if (existingPlaylist != null && !existingPlaylist.equals(aPlaylist))
+    {
+      boolean didRemove = existingPlaylist.removeSong(this);
+      if (!didRemove)
+      {
+        playlist = existingPlaylist;
+        return wasSet;
+      }
+    }
+    playlist.addSong(this);
+    wasSet = true;
+    return wasSet;
+  }
+  /* Code from template association_SetOneToMandatoryMany */
+  public boolean setGenre(Genre aGenre)
+  {
+    boolean wasSet = false;
+    //Must provide genre to song
+    if (aGenre == null)
+    {
+      return wasSet;
+    }
+
+    if (genre != null && genre.numberOfSongs() <= Genre.minimumNumberOfSongs())
+    {
+      return wasSet;
+    }
+
+    Genre existingGenre = genre;
+    genre = aGenre;
+    if (existingGenre != null && !existingGenre.equals(aGenre))
+    {
+      boolean didRemove = existingGenre.removeSong(this);
+      if (!didRemove)
+      {
+        genre = existingGenre;
+        return wasSet;
+      }
+    }
+    genre.addSong(this);
+    wasSet = true;
+    return wasSet;
+  }
 
   public void delete()
   {
@@ -487,36 +423,29 @@ public class Song
         aArtist.removeSong(this);
       }
     }
-    Genre existingGenre = genre;
-    genre = null;
-    if (existingGenre != null)
-    {
-      existingGenre.delete();
-    }
     Album placeholderAlbum = album;
     this.album = null;
     if(placeholderAlbum != null)
     {
       placeholderAlbum.removeSong(this);
     }
-    ArrayList<Playlist> copyOfPlaylists = new ArrayList<Playlist>(playlists);
-    playlists.clear();
-    for(Playlist aPlaylist : copyOfPlaylists)
-    {
-      if (aPlaylist.numberOfSongs() <= Playlist.minimumNumberOfSongs())
-      {
-        aPlaylist.delete();
-      }
-      else
-      {
-        aPlaylist.removeSong(this);
-      }
-    }
     Library placeholderLibrary = library;
     this.library = null;
     if(placeholderLibrary != null)
     {
       placeholderLibrary.removeSong(this);
+    }
+    Playlist placeholderPlaylist = playlist;
+    this.playlist = null;
+    if(placeholderPlaylist != null)
+    {
+      placeholderPlaylist.removeSong(this);
+    }
+    Genre placeholderGenre = genre;
+    this.genre = null;
+    if(placeholderGenre != null)
+    {
+      placeholderGenre.removeSong(this);
     }
   }
 
@@ -525,11 +454,12 @@ public class Song
   {
     return super.toString() + "["+
             "title" + ":" + getTitle()+ "," +
-            "yearOfRelease" + ":" + getYearOfRelease()+ "," +
             "favourite" + ":" + getFavourite()+ "," +
-            "duration" + ":" + getDuration()+ "]" + System.getProperties().getProperty("line.separator") +
-            "  " + "genre = "+(getGenre()!=null?Integer.toHexString(System.identityHashCode(getGenre())):"null") + System.getProperties().getProperty("line.separator") +
+            "lengthMin" + ":" + getLengthMin()+ "," +
+            "lengthSec" + ":" + getLengthSec()+ "]" + System.getProperties().getProperty("line.separator") +
             "  " + "album = "+(getAlbum()!=null?Integer.toHexString(System.identityHashCode(getAlbum())):"null") + System.getProperties().getProperty("line.separator") +
-            "  " + "library = "+(getLibrary()!=null?Integer.toHexString(System.identityHashCode(getLibrary())):"null");
+            "  " + "library = "+(getLibrary()!=null?Integer.toHexString(System.identityHashCode(getLibrary())):"null") + System.getProperties().getProperty("line.separator") +
+            "  " + "playlist = "+(getPlaylist()!=null?Integer.toHexString(System.identityHashCode(getPlaylist())):"null") + System.getProperties().getProperty("line.separator") +
+            "  " + "genre = "+(getGenre()!=null?Integer.toHexString(System.identityHashCode(getGenre())):"null");
   }
 }

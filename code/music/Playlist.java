@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 37 "model.ump"
-// line 84 "model.ump"
+// line 39 "model.ump"
+// line 87 "model.ump"
 public class Playlist
 {
 
@@ -16,34 +16,31 @@ public class Playlist
   //Playlist Attributes
   private String title;
   private boolean favourite;
-  private int duration;
+  private int lengthMin;
+  private int lengthSec;
 
   //Playlist Associations
   private List<Song> songs;
-  private List<Genre> genres;
   private Library library;
+  private List<Genre> genres;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public Playlist(String aTitle, boolean aFavourite, int aDuration, Library aLibrary, Song... allSongs)
+  public Playlist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary)
   {
     title = aTitle;
     favourite = aFavourite;
-    duration = aDuration;
+    lengthMin = aLengthMin;
+    lengthSec = aLengthSec;
     songs = new ArrayList<Song>();
-    boolean didAddSongs = setSongs(allSongs);
-    if (!didAddSongs)
-    {
-      throw new RuntimeException("Unable to create Playlist, must have at least 3 songs. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
-    }
-    genres = new ArrayList<Genre>();
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
     {
       throw new RuntimeException("Unable to create playlist due to library. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
     }
+    genres = new ArrayList<Genre>();
   }
 
   //------------------------
@@ -66,10 +63,18 @@ public class Playlist
     return wasSet;
   }
 
-  public boolean setDuration(int aDuration)
+  public boolean setLengthMin(int aLengthMin)
   {
     boolean wasSet = false;
-    duration = aDuration;
+    lengthMin = aLengthMin;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setLengthSec(int aLengthSec)
+  {
+    boolean wasSet = false;
+    lengthSec = aLengthSec;
     wasSet = true;
     return wasSet;
   }
@@ -84,9 +89,14 @@ public class Playlist
     return favourite;
   }
 
-  public int getDuration()
+  public int getLengthMin()
   {
-    return duration;
+    return lengthMin;
+  }
+
+  public int getLengthSec()
+  {
+    return lengthSec;
   }
   /* Code from template association_GetMany */
   public Song getSong(int index)
@@ -118,6 +128,11 @@ public class Playlist
     int index = songs.indexOf(aSong);
     return index;
   }
+  /* Code from template association_GetOne */
+  public Library getLibrary()
+  {
+    return library;
+  }
   /* Code from template association_GetMany */
   public Genre getGenre(int index)
   {
@@ -148,11 +163,6 @@ public class Playlist
     int index = genres.indexOf(aGenre);
     return index;
   }
-  /* Code from template association_GetOne */
-  public Library getLibrary()
-  {
-    return library;
-  }
   /* Code from template association_IsNumberOfValidMethod */
   public boolean isNumberOfSongsValid()
   {
@@ -164,96 +174,54 @@ public class Playlist
   {
     return 3;
   }
-  /* Code from template association_AddManyToManyMethod */
+  /* Code from template association_AddMandatoryManyToOne */
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Library aLibrary, Genre aGenre)
+  {
+    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aAlbum, aLibrary, this, aGenre);
+    return aNewSong;
+  }
+
   public boolean addSong(Song aSong)
   {
     boolean wasAdded = false;
     if (songs.contains(aSong)) { return false; }
-    songs.add(aSong);
-    if (aSong.indexOfPlaylist(this) != -1)
+    Playlist existingPlaylist = aSong.getPlaylist();
+    boolean isNewPlaylist = existingPlaylist != null && !this.equals(existingPlaylist);
+
+    if (isNewPlaylist && existingPlaylist.numberOfSongs() <= minimumNumberOfSongs())
     {
-      wasAdded = true;
+      return wasAdded;
+    }
+    if (isNewPlaylist)
+    {
+      aSong.setPlaylist(this);
     }
     else
     {
-      wasAdded = aSong.addPlaylist(this);
-      if (!wasAdded)
-      {
-        songs.remove(aSong);
-      }
+      songs.add(aSong);
     }
+    wasAdded = true;
     return wasAdded;
   }
-  /* Code from template association_AddMStarToMany */
+
   public boolean removeSong(Song aSong)
   {
     boolean wasRemoved = false;
-    if (!songs.contains(aSong))
+    //Unable to remove aSong, as it must always have a playlist
+    if (this.equals(aSong.getPlaylist()))
     {
       return wasRemoved;
     }
 
+    //playlist already at minimum (3)
     if (numberOfSongs() <= minimumNumberOfSongs())
     {
       return wasRemoved;
     }
 
-    int oldIndex = songs.indexOf(aSong);
-    songs.remove(oldIndex);
-    if (aSong.indexOfPlaylist(this) == -1)
-    {
-      wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aSong.removePlaylist(this);
-      if (!wasRemoved)
-      {
-        songs.add(oldIndex,aSong);
-      }
-    }
+    songs.remove(aSong);
+    wasRemoved = true;
     return wasRemoved;
-  }
-  /* Code from template association_SetMStarToMany */
-  public boolean setSongs(Song... newSongs)
-  {
-    boolean wasSet = false;
-    ArrayList<Song> verifiedSongs = new ArrayList<Song>();
-    for (Song aSong : newSongs)
-    {
-      if (verifiedSongs.contains(aSong))
-      {
-        continue;
-      }
-      verifiedSongs.add(aSong);
-    }
-
-    if (verifiedSongs.size() != newSongs.length || verifiedSongs.size() < minimumNumberOfSongs())
-    {
-      return wasSet;
-    }
-
-    ArrayList<Song> oldSongs = new ArrayList<Song>(songs);
-    songs.clear();
-    for (Song aNewSong : verifiedSongs)
-    {
-      songs.add(aNewSong);
-      if (oldSongs.contains(aNewSong))
-      {
-        oldSongs.remove(aNewSong);
-      }
-      else
-      {
-        aNewSong.addPlaylist(this);
-      }
-    }
-
-    for (Song anOldSong : oldSongs)
-    {
-      anOldSong.removePlaylist(this);
-    }
-    wasSet = true;
-    return wasSet;
   }
   /* Code from template association_AddIndexControlFunctions */
   public boolean addSongAt(Song aSong, int index)
@@ -287,53 +255,62 @@ public class Playlist
     }
     return wasAdded;
   }
+  /* Code from template association_SetOneToMany */
+  public boolean setLibrary(Library aLibrary)
+  {
+    boolean wasSet = false;
+    if (aLibrary == null)
+    {
+      return wasSet;
+    }
+
+    Library existingLibrary = library;
+    library = aLibrary;
+    if (existingLibrary != null && !existingLibrary.equals(aLibrary))
+    {
+      existingLibrary.removePlaylist(this);
+    }
+    library.addPlaylist(this);
+    wasSet = true;
+    return wasSet;
+  }
   /* Code from template association_MinimumNumberOfMethod */
   public static int minimumNumberOfGenres()
   {
     return 0;
   }
-  /* Code from template association_AddManyToManyMethod */
+  /* Code from template association_AddManyToOne */
+  public Genre addGenre(String aName, boolean aFavourite)
+  {
+    return new Genre(aName, aFavourite, this);
+  }
+
   public boolean addGenre(Genre aGenre)
   {
     boolean wasAdded = false;
     if (genres.contains(aGenre)) { return false; }
-    genres.add(aGenre);
-    if (aGenre.indexOfPlaylist(this) != -1)
+    Playlist existingPlaylist = aGenre.getPlaylist();
+    boolean isNewPlaylist = existingPlaylist != null && !this.equals(existingPlaylist);
+    if (isNewPlaylist)
     {
-      wasAdded = true;
+      aGenre.setPlaylist(this);
     }
     else
     {
-      wasAdded = aGenre.addPlaylist(this);
-      if (!wasAdded)
-      {
-        genres.remove(aGenre);
-      }
+      genres.add(aGenre);
     }
+    wasAdded = true;
     return wasAdded;
   }
-  /* Code from template association_RemoveMany */
+
   public boolean removeGenre(Genre aGenre)
   {
     boolean wasRemoved = false;
-    if (!genres.contains(aGenre))
+    //Unable to remove aGenre, as it must always have a playlist
+    if (!this.equals(aGenre.getPlaylist()))
     {
-      return wasRemoved;
-    }
-
-    int oldIndex = genres.indexOf(aGenre);
-    genres.remove(oldIndex);
-    if (aGenre.indexOfPlaylist(this) == -1)
-    {
+      genres.remove(aGenre);
       wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aGenre.removePlaylist(this);
-      if (!wasRemoved)
-      {
-        genres.add(oldIndex,aGenre);
-      }
     }
     return wasRemoved;
   }
@@ -369,45 +346,24 @@ public class Playlist
     }
     return wasAdded;
   }
-  /* Code from template association_SetOneToMany */
-  public boolean setLibrary(Library aLibrary)
-  {
-    boolean wasSet = false;
-    if (aLibrary == null)
-    {
-      return wasSet;
-    }
-
-    Library existingLibrary = library;
-    library = aLibrary;
-    if (existingLibrary != null && !existingLibrary.equals(aLibrary))
-    {
-      existingLibrary.removePlaylist(this);
-    }
-    library.addPlaylist(this);
-    wasSet = true;
-    return wasSet;
-  }
 
   public void delete()
   {
-    ArrayList<Song> copyOfSongs = new ArrayList<Song>(songs);
-    songs.clear();
-    for(Song aSong : copyOfSongs)
+    for(int i=songs.size(); i > 0; i--)
     {
-      aSong.removePlaylist(this);
-    }
-    ArrayList<Genre> copyOfGenres = new ArrayList<Genre>(genres);
-    genres.clear();
-    for(Genre aGenre : copyOfGenres)
-    {
-      aGenre.removePlaylist(this);
+      Song aSong = songs.get(i - 1);
+      aSong.delete();
     }
     Library placeholderLibrary = library;
     this.library = null;
     if(placeholderLibrary != null)
     {
       placeholderLibrary.removePlaylist(this);
+    }
+    for(int i=genres.size(); i > 0; i--)
+    {
+      Genre aGenre = genres.get(i - 1);
+      aGenre.delete();
     }
   }
 
@@ -417,7 +373,8 @@ public class Playlist
     return super.toString() + "["+
             "title" + ":" + getTitle()+ "," +
             "favourite" + ":" + getFavourite()+ "," +
-            "duration" + ":" + getDuration()+ "]" + System.getProperties().getProperty("line.separator") +
+            "lengthMin" + ":" + getLengthMin()+ "," +
+            "lengthSec" + ":" + getLengthSec()+ "]" + System.getProperties().getProperty("line.separator") +
             "  " + "library = "+(getLibrary()!=null?Integer.toHexString(System.identityHashCode(getLibrary())):"null");
   }
 }

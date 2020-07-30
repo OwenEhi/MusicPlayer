@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 45 "model.ump"
-// line 90 "model.ump"
+// line 24 "model.ump"
+// line 75 "model.ump"
 public class Library
 {
 
@@ -145,9 +145,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Song addSong(String aTitle, int aYearOfRelease, boolean aFavourite, int aDuration, Genre aGenre, Album aAlbum)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Album aAlbum, Playlist aPlaylist, Genre aGenre)
   {
-    return new Song(aTitle, aYearOfRelease, aFavourite, aDuration, aGenre, aAlbum, this);
+    return new Song(aTitle, aFavourite, aLengthMin, aLengthSec, aAlbum, this, aPlaylist, aGenre);
   }
 
   public boolean addSong(Song aSong)
@@ -217,9 +217,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Playlist addPlaylist(String aTitle, boolean aFavourite, int aDuration, Song... allSongs)
+  public Playlist addPlaylist(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec)
   {
-    return new Playlist(aTitle, aFavourite, aDuration, this, allSongs);
+    return new Playlist(aTitle, aFavourite, aLengthMin, aLengthSec, this);
   }
 
   public boolean addPlaylist(Playlist aPlaylist)
@@ -289,9 +289,9 @@ public class Library
     return 0;
   }
   /* Code from template association_AddManyToOne */
-  public Album addAlbum(String aTitle, int aDuration, boolean aFavourite)
+  public Album addAlbum(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Artist... allArtists)
   {
-    return new Album(aTitle, aDuration, aFavourite, this);
+    return new Album(aTitle, aFavourite, aLengthMin, aLengthSec, this, allArtists);
   }
 
   public boolean addAlbum(Album aAlbum)

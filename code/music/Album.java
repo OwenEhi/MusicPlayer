@@ -4,8 +4,8 @@
 
 import java.util.*;
 
-// line 26 "model.ump"
-// line 75 "model.ump"
+// line 13 "model.ump"
+// line 67 "model.ump"
 public class Album
 {
 
@@ -15,27 +15,32 @@ public class Album
 
   //Album Attributes
   private String title;
-  private int duration;
   private boolean favourite;
+  private int lengthMin;
+  private int lengthSec;
 
   //Album Associations
   private List<Song> songs;
   private List<Artist> artists;
-  private List<Genre> genres;
   private Library library;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public Album(String aTitle, int aDuration, boolean aFavourite, Library aLibrary)
+  public Album(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Artist... allArtists)
   {
     title = aTitle;
-    duration = aDuration;
     favourite = aFavourite;
+    lengthMin = aLengthMin;
+    lengthSec = aLengthSec;
     songs = new ArrayList<Song>();
     artists = new ArrayList<Artist>();
-    genres = new ArrayList<Genre>();
+    boolean didAddArtists = setArtists(allArtists);
+    if (!didAddArtists)
+    {
+      throw new RuntimeException("Unable to create Album, must have at least 1 artists. See http://manual.umple.org?RE002ViolationofAssociationMultiplicity.html");
+    }
     boolean didAddLibrary = setLibrary(aLibrary);
     if (!didAddLibrary)
     {
@@ -55,18 +60,26 @@ public class Album
     return wasSet;
   }
 
-  public boolean setDuration(int aDuration)
-  {
-    boolean wasSet = false;
-    duration = aDuration;
-    wasSet = true;
-    return wasSet;
-  }
-
   public boolean setFavourite(boolean aFavourite)
   {
     boolean wasSet = false;
     favourite = aFavourite;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setLengthMin(int aLengthMin)
+  {
+    boolean wasSet = false;
+    lengthMin = aLengthMin;
+    wasSet = true;
+    return wasSet;
+  }
+
+  public boolean setLengthSec(int aLengthSec)
+  {
+    boolean wasSet = false;
+    lengthSec = aLengthSec;
     wasSet = true;
     return wasSet;
   }
@@ -76,14 +89,19 @@ public class Album
     return title;
   }
 
-  public int getDuration()
-  {
-    return duration;
-  }
-
   public boolean getFavourite()
   {
     return favourite;
+  }
+
+  public int getLengthMin()
+  {
+    return lengthMin;
+  }
+
+  public int getLengthSec()
+  {
+    return lengthSec;
   }
   /* Code from template association_GetMany */
   public Song getSong(int index)
@@ -145,36 +163,6 @@ public class Album
     int index = artists.indexOf(aArtist);
     return index;
   }
-  /* Code from template association_GetMany */
-  public Genre getGenre(int index)
-  {
-    Genre aGenre = genres.get(index);
-    return aGenre;
-  }
-
-  public List<Genre> getGenres()
-  {
-    List<Genre> newGenres = Collections.unmodifiableList(genres);
-    return newGenres;
-  }
-
-  public int numberOfGenres()
-  {
-    int number = genres.size();
-    return number;
-  }
-
-  public boolean hasGenres()
-  {
-    boolean has = genres.size() > 0;
-    return has;
-  }
-
-  public int indexOfGenre(Genre aGenre)
-  {
-    int index = genres.indexOf(aGenre);
-    return index;
-  }
   /* Code from template association_GetOne */
   public Library getLibrary()
   {
@@ -192,9 +180,9 @@ public class Album
     return 7;
   }
   /* Code from template association_AddMandatoryManyToOne */
-  public Song addSong(String aTitle, int aYearOfRelease, boolean aFavourite, int aDuration, Genre aGenre, Library aLibrary)
+  public Song addSong(String aTitle, boolean aFavourite, int aLengthMin, int aLengthSec, Library aLibrary, Playlist aPlaylist, Genre aGenre)
   {
-    Song aNewSong = new Song(aTitle, aYearOfRelease, aFavourite, aDuration, aGenre, this, aLibrary);
+    Song aNewSong = new Song(aTitle, aFavourite, aLengthMin, aLengthSec, this, aLibrary, aPlaylist, aGenre);
     return aNewSong;
   }
 
@@ -272,10 +260,16 @@ public class Album
     }
     return wasAdded;
   }
+  /* Code from template association_IsNumberOfValidMethod */
+  public boolean isNumberOfArtistsValid()
+  {
+    boolean isValid = numberOfArtists() >= minimumNumberOfArtists();
+    return isValid;
+  }
   /* Code from template association_MinimumNumberOfMethod */
   public static int minimumNumberOfArtists()
   {
-    return 0;
+    return 1;
   }
   /* Code from template association_AddManyToManyMethod */
   public boolean addArtist(Artist aArtist)
@@ -297,11 +291,16 @@ public class Album
     }
     return wasAdded;
   }
-  /* Code from template association_RemoveMany */
+  /* Code from template association_AddMStarToMany */
   public boolean removeArtist(Artist aArtist)
   {
     boolean wasRemoved = false;
     if (!artists.contains(aArtist))
+    {
+      return wasRemoved;
+    }
+
+    if (numberOfArtists() <= minimumNumberOfArtists())
     {
       return wasRemoved;
     }
@@ -321,6 +320,47 @@ public class Album
       }
     }
     return wasRemoved;
+  }
+  /* Code from template association_SetMStarToMany */
+  public boolean setArtists(Artist... newArtists)
+  {
+    boolean wasSet = false;
+    ArrayList<Artist> verifiedArtists = new ArrayList<Artist>();
+    for (Artist aArtist : newArtists)
+    {
+      if (verifiedArtists.contains(aArtist))
+      {
+        continue;
+      }
+      verifiedArtists.add(aArtist);
+    }
+
+    if (verifiedArtists.size() != newArtists.length || verifiedArtists.size() < minimumNumberOfArtists())
+    {
+      return wasSet;
+    }
+
+    ArrayList<Artist> oldArtists = new ArrayList<Artist>(artists);
+    artists.clear();
+    for (Artist aNewArtist : verifiedArtists)
+    {
+      artists.add(aNewArtist);
+      if (oldArtists.contains(aNewArtist))
+      {
+        oldArtists.remove(aNewArtist);
+      }
+      else
+      {
+        aNewArtist.addAlbum(this);
+      }
+    }
+
+    for (Artist anOldArtist : oldArtists)
+    {
+      anOldArtist.removeAlbum(this);
+    }
+    wasSet = true;
+    return wasSet;
   }
   /* Code from template association_AddIndexControlFunctions */
   public boolean addArtistAt(Artist aArtist, int index)
@@ -351,140 +391,6 @@ public class Album
     else 
     {
       wasAdded = addArtistAt(aArtist, index);
-    }
-    return wasAdded;
-  }
-  /* Code from template association_IsNumberOfValidMethod */
-  public boolean isNumberOfGenresValid()
-  {
-    boolean isValid = numberOfGenres() >= minimumNumberOfGenres();
-    return isValid;
-  }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfGenres()
-  {
-    return 1;
-  }
-  /* Code from template association_AddManyToManyMethod */
-  public boolean addGenre(Genre aGenre)
-  {
-    boolean wasAdded = false;
-    if (genres.contains(aGenre)) { return false; }
-    genres.add(aGenre);
-    if (aGenre.indexOfAlbum(this) != -1)
-    {
-      wasAdded = true;
-    }
-    else
-    {
-      wasAdded = aGenre.addAlbum(this);
-      if (!wasAdded)
-      {
-        genres.remove(aGenre);
-      }
-    }
-    return wasAdded;
-  }
-  /* Code from template association_AddMStarToMany */
-  public boolean removeGenre(Genre aGenre)
-  {
-    boolean wasRemoved = false;
-    if (!genres.contains(aGenre))
-    {
-      return wasRemoved;
-    }
-
-    if (numberOfGenres() <= minimumNumberOfGenres())
-    {
-      return wasRemoved;
-    }
-
-    int oldIndex = genres.indexOf(aGenre);
-    genres.remove(oldIndex);
-    if (aGenre.indexOfAlbum(this) == -1)
-    {
-      wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aGenre.removeAlbum(this);
-      if (!wasRemoved)
-      {
-        genres.add(oldIndex,aGenre);
-      }
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_SetMStarToMany */
-  public boolean setGenres(Genre... newGenres)
-  {
-    boolean wasSet = false;
-    ArrayList<Genre> verifiedGenres = new ArrayList<Genre>();
-    for (Genre aGenre : newGenres)
-    {
-      if (verifiedGenres.contains(aGenre))
-      {
-        continue;
-      }
-      verifiedGenres.add(aGenre);
-    }
-
-    if (verifiedGenres.size() != newGenres.length || verifiedGenres.size() < minimumNumberOfGenres())
-    {
-      return wasSet;
-    }
-
-    ArrayList<Genre> oldGenres = new ArrayList<Genre>(genres);
-    genres.clear();
-    for (Genre aNewGenre : verifiedGenres)
-    {
-      genres.add(aNewGenre);
-      if (oldGenres.contains(aNewGenre))
-      {
-        oldGenres.remove(aNewGenre);
-      }
-      else
-      {
-        aNewGenre.addAlbum(this);
-      }
-    }
-
-    for (Genre anOldGenre : oldGenres)
-    {
-      anOldGenre.removeAlbum(this);
-    }
-    wasSet = true;
-    return wasSet;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addGenreAt(Genre aGenre, int index)
-  {  
-    boolean wasAdded = false;
-    if(addGenre(aGenre))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfGenres()) { index = numberOfGenres() - 1; }
-      genres.remove(aGenre);
-      genres.add(index, aGenre);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMoveGenreAt(Genre aGenre, int index)
-  {
-    boolean wasAdded = false;
-    if(genres.contains(aGenre))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfGenres()) { index = numberOfGenres() - 1; }
-      genres.remove(aGenre);
-      genres.add(index, aGenre);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addGenreAt(aGenre, index);
     }
     return wasAdded;
   }
@@ -519,27 +425,7 @@ public class Album
     artists.clear();
     for(Artist aArtist : copyOfArtists)
     {
-      if (aArtist.numberOfAlbums() <= Artist.minimumNumberOfAlbums())
-      {
-        aArtist.delete();
-      }
-      else
-      {
-        aArtist.removeAlbum(this);
-      }
-    }
-    ArrayList<Genre> copyOfGenres = new ArrayList<Genre>(genres);
-    genres.clear();
-    for(Genre aGenre : copyOfGenres)
-    {
-      if (aGenre.numberOfAlbums() <= Genre.minimumNumberOfAlbums())
-      {
-        aGenre.delete();
-      }
-      else
-      {
-        aGenre.removeAlbum(this);
-      }
+      aArtist.removeAlbum(this);
     }
     Library placeholderLibrary = library;
     this.library = null;
@@ -554,8 +440,9 @@ public class Album
   {
     return super.toString() + "["+
             "title" + ":" + getTitle()+ "," +
-            "duration" + ":" + getDuration()+ "," +
-            "favourite" + ":" + getFavourite()+ "]" + System.getProperties().getProperty("line.separator") +
+            "favourite" + ":" + getFavourite()+ "," +
+            "lengthMin" + ":" + getLengthMin()+ "," +
+            "lengthSec" + ":" + getLengthSec()+ "]" + System.getProperties().getProperty("line.separator") +
             "  " + "library = "+(getLibrary()!=null?Integer.toHexString(System.identityHashCode(getLibrary())):"null");
   }
 }
