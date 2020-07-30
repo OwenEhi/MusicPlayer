@@ -1,0 +1,97 @@
+
+use music.*;
+
+class PlaySong{
+	// This will be used to display the time remaining and track that time
+  // In a real system, this would be in minutes, but it will be seconds in this simulation
+  Float currentMinute = 0.0;
+  
+  Float numMins = 0.0;
+  
+  Integer secondsCounter = 0;
+  
+  String songTitle = "";
+  String albumTitle = "";
+  String artistTitle = "";
+  String playListTitle = "";
+  
+  
+  // This will be set if a timed operation needs to not count down, e.g. when the door is open
+  Boolean paused = false;
+	
+	
+	queued Core{
+		idle{
+		playSong[!paused] -> play;
+		}
+		
+		play{
+		entry/{display("Now playing : " + songTitle + " by " + artistTitle);}
+		entry/{startTimer(numMins);}
+		
+		forwardPlay -> forward;
+		fastForward -> fastforward;
+		backWard -> backward;
+		fastBackward -> fastbackward;
+		pausePlay -> pause;
+		stopPlay -> stop;
+		}
+		
+		forward{
+		
+		}
+		
+		fastforward{
+		
+		}
+		
+		backward{
+		
+		}
+		
+		fastbackward{
+		
+		}
+		
+		pause{
+		
+		}
+		
+		stop{
+		
+		}
+	}
+	
+	
+	queued timingSm {
+    idle {
+      startTimer(Float numMins) / {currentMinute == 0.00 } -> countingDown;
+    }
+    countingDown {
+      startTimer(Float numMins) / {currentMinute == 0.00 } -> countingDown;
+      after(1.0) [minutesRemaining < numMins && ! paused]  / {
+        displayTime();
+        if(secondsCounter == 5){
+        	currentMinute = currentMinute + 0.50;
+        	secondsCounter = 0;
+        }else{
+        	currentMinute = currentMinute + 0.10;
+        }
+      } -> countingDown;
+      after(1.0) [minutesRemaining == numMins] / {
+      
+      } -> idle;
+    }
+  }
+  
+  void display(String s) {
+    System.out.println(s);
+  }
+  
+  void displayTime() {
+    System.out.println("DISPLAY: "+currentMinute);
+  } 
+	
+	
+}
+
