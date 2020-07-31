@@ -52,6 +52,8 @@ class PlaySong{
 		replaySong -> replay;
 		increaseVolume[(volume + 1) <= 10] -> VolumeUp;
 		decreaseVolume[(volume - 1) >= 0] -> VolumeDown;
+		
+		timerEnded[currentMinute >= numMins] -> idle;
 		}
 		
 		forward{
@@ -150,8 +152,8 @@ class PlaySong{
       after(1.0) [currentMinute >= numMins] / {
       	secondsCounter = 0;
       	display(songTitle +  " Ended.");
+      	timerEnded();
       } -> idle;
-      
       
     }
   }
