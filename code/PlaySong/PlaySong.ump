@@ -1,4 +1,5 @@
-
+// @ Author = Owens Ehimen
+// @ Project = Music Player (SEG2105)
 class PlaySong{
 
   //Responsible for time keeping and recording the current time in the simulation
@@ -15,6 +16,7 @@ class PlaySong{
   //Initial number of minutes and seconds for a song
   Integer numMins = 0;
   Integer numSecs = 0;
+  Integer secondsCounter = 0;
   
   //Stores information about the song currently being played
   String songTitle = "";
@@ -445,7 +447,7 @@ class PlaySong{
    								System.out.println("Album selected:" + select.getTitle() + " (" + select.getLengthMin() + " Mins)");
    								break;
    							}
-   							if(i = lib.numberOfAlbums() -1){
+   							if(i == lib.numberOfAlbums() -1){
    								System.out.println("Album not found");
    							}
    						}
@@ -465,7 +467,7 @@ class PlaySong{
    								System.out.println("Playlist selected:" + select.getTitle() + " (" + select.getLengthMin() + " Mins)");
    								break;
    							}
-   							if(i = lib.numberOfAlbums() -1){
+   							if(i == lib.numberOfAlbums() -1){
    								System.out.println("Playlist not found");
    							}
    							}
