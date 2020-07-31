@@ -2051,7 +2051,37 @@ public class PlaySong implements Runnable
 			          }
 			          
 			          break; 
-			                   
+			         
+			        case "menu":
+			        System.out.println("---------- MENU---------");
+			        System.out.println("(create song) - Creates and adds a song to the library database ");
+			        System.out.println("(create album) - Creates and adds an album to the library database ");  
+			        System.out.println("(create playlist) - Creates and adds a playlist to the library database ");    
+			        System.out.println("");       
+			        System.out.println("(search song) - search for a song in the library database ");
+			        System.out.println("(search album) - search for an album in the library database ");    
+			        System.out.println("(search playlist) - search for an playlist in the library database "); 
+			        System.out.println("");       
+			        System.out.println("(add to album) - search for an song in the library database and add it to an album ");       
+			        System.out.println("(add to playlist) - search for an song in the library database and add it to a playlist ");       
+			        System.out.println("");       
+			        System.out.println("----------Play control commands----------"); 
+			        System.out.println("");
+			        System.out.println("(play) - play current song");
+			        System.out.println("(p) - pause current song"); 
+			        System.out.println("(s) - stop current song");   
+			        System.out.println("(>) - forward current song");    
+			        System.out.println("(>>) - fast forward current song");      
+			        System.out.println("(<) - rewind current song");   
+			        System.out.println("(<<) - fast rewind current song"); 
+			        System.out.println("(r) - replay current song from the beginning");
+			        System.out.println("(+) - increase Volume");
+			        System.out.println("(-) - decrease volume");       
+			        System.out.println("");  
+			      	System.out.println("(quit) - exit system");
+			        System.out.println("What would you like to do?");
+			        break;
+			        
 			        default:
 			          break;
    				
@@ -2161,7 +2191,7 @@ public class PlaySong implements Runnable
     public UmpleSourceData PlaySong_timeoutstopToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(101).setJavaLines(720).setLengths(1);}
     public UmpleSourceData PlaySong_setCore(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump","PlaySong.ump").setUmpleLines(57, 63, 68, 73, 78, 79, 80, 85, 86, 99, 105, 106, 112, 113, 119).setJavaLines(957, 962, 967, 972, 977, 978, 979, 984, 985, 989, 994, 995, 1000, 1001, 1006).setLengths(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);}
     public UmpleSourceData PlaySong_decreaseVolume(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(53).setJavaLines(539).setLengths(1);}
-    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(190).setJavaLines(1686).setLengths(371);}
+    public UmpleSourceData PlaySong_main(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(190).setJavaLines(1686).setLengths(401);}
     public UmpleSourceData PlaySong_stopMusic(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(91).setJavaLines(676).setLengths(2);}
     public UmpleSourceData PlaySong_timeoutcountingDownToidle(){ return new UmpleSourceData().setFileNames("PlaySong.ump","PlaySong.ump").setUmpleLines(149, 149).setJavaLines(860, 863).setLengths(1, 2);}
     public UmpleSourceData PlaySong_playSong(){ return new UmpleSourceData().setFileNames("PlaySong.ump").setUmpleLines(34).setJavaLines(348).setLengths(3);}

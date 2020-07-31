@@ -552,7 +552,37 @@ class PlaySong{
 			          }
 			          
 			          break; 
-			                   
+			         
+			        case "menu":
+			        System.out.println("---------- MENU---------");
+			        System.out.println("(create song) - Creates and adds a song to the library database ");
+			        System.out.println("(create album) - Creates and adds an album to the library database ");  
+			        System.out.println("(create playlist) - Creates and adds a playlist to the library database ");    
+			        System.out.println("");       
+			        System.out.println("(search song) - search for a song in the library database ");
+			        System.out.println("(search album) - search for an album in the library database ");    
+			        System.out.println("(search playlist) - search for an playlist in the library database "); 
+			        System.out.println("");       
+			        System.out.println("(add to album) - search for an song in the library database and add it to an album ");       
+			        System.out.println("(add to playlist) - search for an song in the library database and add it to a playlist ");       
+			        System.out.println("");       
+			        System.out.println("----------Play control commands----------"); 
+			        System.out.println("");
+			        System.out.println("(play) - play current song");
+			        System.out.println("(p) - pause current song"); 
+			        System.out.println("(s) - stop current song");   
+			        System.out.println("(>) - forward current song");    
+			        System.out.println("(>>) - fast forward current song");      
+			        System.out.println("(<) - rewind current song");   
+			        System.out.println("(<<) - fast rewind current song"); 
+			        System.out.println("(r) - replay current song from the beginning");
+			        System.out.println("(+) - increase Volume");
+			        System.out.println("(-) - decrease volume");       
+			        System.out.println("");  
+			      	System.out.println("(quit) - exit system");
+			        System.out.println("What would you like to do?");
+			        break;
+			        
 			        default:
 			          break;
    				
