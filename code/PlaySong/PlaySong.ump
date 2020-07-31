@@ -1,22 +1,22 @@
 
 class PlaySong{
 
-	// This will be used to display the time remaining and track that time
-  // In a real system, this would be in minutes, but it will be seconds in this simulation
+  //Responsible for time keeping and recording the current time in the simulation
   Integer currentMinute = 0;
   Integer currentSecond = 0;
   
+  //Used for skip functions as target values
   Integer targetMin = 0;
   Integer targetSec = 0;
   
+  //volume control for simulation
   Integer volume = 7;
  
-  
+  //Initial number of minutes and seconds for a song
   Integer numMins = 0;
   Integer numSecs = 0;
   
-  Integer secondsCounter = 0;
-  
+  //Stores information about the song currently being played
   String songTitle = "";
   String albumTitle = "";
   String artistName = "";
@@ -126,7 +126,7 @@ class PlaySong{
 		
 	}
 	
-	
+	// timing simulation for the music player
 	queued timingSm {
     idle {
       startTimer(Integer numMins, Integer numSecs) -> countingDown;
@@ -154,14 +154,28 @@ class PlaySong{
     }
   }
   
+  	queued staller{
+  		idle{
+  		startStaller -> stall;
+  		
+  		}
+  		
+  		stall{
+  		after(1.0) -> idle;
+  		}
+
+  	}
+  
   void display(String s) {
     System.out.println(s);
   }
   
+  //displays current time during play
   void displayTime() {
     System.out.println("DISPLAY: "+currentMinute + ":" + currentSecond);
   } 
   
+  // Helper method to perform skip functions
   void skipTo(Integer mins, Integer sec){
   	if(mins >= 0 && mins <= numMins && sec >= 0 && sec <= numSecs){
   		currentMinute = mins;
@@ -171,7 +185,6 @@ class PlaySong{
   	}
   }
   
-
   public static void main(String[] argv) {
    	PlaySong p = new PlaySong();
    	Library lib = new Library("Your Library");
@@ -186,6 +199,7 @@ class PlaySong{
    				case "quit":
    					System.exit(0);
    				
+   				//Adds a song to the library database
    				case "create song":
    					String title = "";
    					Boolean favourite = false;
@@ -262,9 +276,10 @@ class PlaySong{
    					gn.setName(s.nextLine());
    					lib.addSong(sng);
    					System.out.println("Song Created");
+   					System.out.println("What would you like to do? : ");
    					break;
    					
-   				
+   				//Performs a linear search for a song
    				case "search song":
    						System.out.println("Song name :");
    						String songTitle2 = s.nextLine();
@@ -301,11 +316,163 @@ class PlaySong{
  
    								break;
    							}
-   							System.out.println("Song not Found");
+   							if(i == lib.numberOfSongs()-1){
+   								System.out.println("Song not Found");
    							}
+   							}
+   							System.out.println("What would you like to do? : ");
    							break;
+   					
+   					//Creates an album and initializes it		
+   					case "create album":
+   						Song[] tempSongs = new Song[7];
+   						Genre gn2 = new Genre("",false);
+   						for(int i =0; i<7; i++){
+   							tempSongs[i] = new Song("",false,0,0,lib,gn2);
+   						}
+   						System.out.println("Album name:");
+   						String tempAlbumName  = s.nextLine();
+   						Album newAlbum = new Album(tempAlbumName, false, 0,0,lib,tempSongs);
+   						System.out.println("Album created");
+   						System.out.println("What would you like to do? : ");
+   						break;
+   					
+   					//Creates a playlist of songs and initializes it
+   					case "create playlist":
+   						Song[] tempSongs2 = new Song[3];
+   						Genre gn3 = new Genre("",false);
+   						for(int i =0; i<3; i++){
+   							Song t = new Song("",false,0,0,lib,gn3);
+   							tempSongs2[i] = t;
+   						}
+   						System.out.println("Playlist name:");
+   						String tempPlaylistName  = s.nextLine();
+   						Playlist newPlaylist = new Playlist(tempPlaylistName, false, 0,0,lib,tempSongs2);
+   						System.out.println("Album created");
+   						System.out.println("What would you like to do? : ");
+   						break;
+   					
+   					//Adds a specific song to a specific album (Assumes album is created)
+   					case "add to album":
+   						System.out.println("Album name:");
+   						String targetAlbum = s.nextLine();
    						
-        
+   						System.out.println("Song name :");
+   						String albumSongName = s.nextLine();
+   						
+   						System.out.println("Artist name");
+   						String albumArtistName = s.nextLine();
+   						
+   						Boolean isAdded = false;
+   						
+   						
+   						for (int i = 0; i<lib.numberOfAlbums(); i++){
+   							Album select = lib.getAlbum(i);
+   							
+   							if(select.getTitle().equals(targetAlbum)){
+   								for (int j = 0; j<lib.numberOfSongs(); j++){
+   										Song songSelect = lib.getSong(j);
+   							
+   										if(songSelect.getTitle().equals(albumSongName) && songSelect.getArtist(0).getName().equals(albumArtistName)){
+   											select.addSong(songSelect);
+   											System.out.println("Song added");
+   											isAdded = true;
+   											break;
+   										}
+   							
+   								
+   								}
+   								
+   								if(isAdded.equals(true)){
+   									break;
+   								}
+   							}
+   						}
+   						System.out.println("What would you like to do? : ");
+   						break;
+   						
+   					//Adds a song to a specific playlist (Assumes playlist is already created)
+   					case "add to playlist":
+   						System.out.println("Playlist name:");
+   						String targetPlaylist = s.nextLine();
+   						
+   						System.out.println("Song name :");
+   						String playlistSongName = s.nextLine();
+   						
+   						System.out.println("Artist name");
+   						String playlistArtistName = s.nextLine();
+   						
+   						Boolean isAdded2 = false;
+   						
+   						
+   						for (int i = 0; i<lib.numberOfPlaylists(); i++){
+   							Playlist select = lib.getPlaylist(i);
+   							
+   							if(select.getTitle().equals(targetPlaylist)){
+   								for (int j = 0; j<lib.numberOfSongs(); j++){
+   										Song songSelect = lib.getSong(j);
+   							
+   										if(songSelect.getTitle().equals(playlistSongName) && songSelect.getArtist(0).getName().equals(playlistArtistName)){
+   											select.addSong(songSelect);
+   											select.setLengthMin(select.getLengthMin() + songSelect.getLengthMin());
+   											select.setLengthSec(select.getLengthSec() + songSelect.getLengthSec());
+   											System.out.println("Song added");
+   											isAdded2 = true;
+   											break;
+   										}
+   							
+   								
+   								}
+   								
+   								if(isAdded2.equals(true)){
+   									break;
+   								}
+   							}
+   						}
+   						System.out.println("What would you like to do? : ");
+   						break;
+   					
+   					
+   					//Performs a linear seach for a specific album
+   					case "search album":
+   						System.out.println("Album name:");
+   						String albumSearch = s.nextLine();
+   						
+   						for (int i = 0; i<lib.numberOfAlbums(); i++){
+   							Album select = lib.getAlbum(i);
+   							
+   							if(select.getTitle().equals(albumSearch)){
+   								System.out.println("Album selected:" + select.getTitle() + " (" + select.getLengthMin() + " Mins)");
+   								break;
+   							}
+   							if(i = lib.numberOfAlbums() -1){
+   								System.out.println("Album not found");
+   							}
+   						}
+   							
+   						System.out.println("What would you like to do? : ");	
+   						break;
+   					
+   					//Performs a linear search for a specific playlist
+						case "search playlist":
+   						System.out.println("playlist name:");
+   						String playlistSearch = s.nextLine();
+   						
+   						for (int i = 0; i<lib.numberOfPlaylists(); i++){
+   							Playlist select = lib.getPlaylist(i);
+   							
+   							if(select.getTitle().equals(playlistSearch)){
+   								System.out.println("Playlist selected:" + select.getTitle() + " (" + select.getLengthMin() + " Mins)");
+   								break;
+   							}
+   							if(i = lib.numberOfAlbums() -1){
+   								System.out.println("Playlist not found");
+   							}
+   							}
+   							
+   						System.out.println("What would you like to do? : ");	
+   						break;   					
+   							
 			        //Playing the selected song
 			        case "play": 
 			        if(p.getPaused()){
@@ -327,6 +494,7 @@ class PlaySong{
 			        }else{
 			        	p.stopPlay();
 			        }
+			        System.out.println("What would you like to do? : ");
 			          break; 
 			        
 			        //Forwarding the song being played           
@@ -364,6 +532,7 @@ class PlaySong{
 			          p.decreaseVolume();
 			          break;
 			        
+			        
 			        //replaying the song previously played          
 			        case "skip":
 			        Integer minute = 0;
@@ -390,7 +559,6 @@ class PlaySong{
   }
    	}
    	
-    
 	
 }
 
